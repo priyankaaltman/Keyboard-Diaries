@@ -10,12 +10,14 @@ pgConnection = psycopg2.connect(dbname='pg_phone_backup', user='priyanka', host=
 pgCursor = pgConnection.cursor()
 # pgCursor.execute('CREATE DATABASE pg_phone_backup')
 pgCursor.execute("CREATE TABLE phone_numbers (id SERIAL PRIMARY KEY, \
-                                              phone_number VARCHAR(100) NOT NULL)")
+                                              phone_number VARCHAR(100) NOT NULL, \
+                                              fname VARCHAR, \
+                                              lname VARCHAR)")
 
 pgCursor.execute("CREATE TABLE messages (id SERIAL PRIMARY KEY, \
                                          text TEXT, \
                                          phone_id INTEGER REFERENCES phone_numbers(id), \
-                                         date VARCHAR,\
+                                         date INTEGER,\
                                          is_from_me INTEGER)") 
 
 # note: is_from_me = 1 if yes, 0 if no
@@ -50,14 +52,58 @@ for row in rows:
                           VALUES (%s, %s, %s, %s)", (row[0], row[1], row[2], row[3]))
 
 
+pgConnection.commit()
 
+# close first sqlite connection
+sqliteConnection.close()
+
+# make a new sqlite connection to the contacts database
+sqliteConnection = sqlite3.connect("contacts.db")
+sqliteCursor = sqliteConnection.cursor()
+
+#add names to phone numbers table:
+
+sqliteCursor.execute("SELECT c0First, c1Last, c16Phone FROM ABPersonFullTextSearch_content")
+
+rows = sqliteCursor.fetchall()
+
+for row in rows:
+    # get the phone number in the same format as in the phone numbers table
+    # (desired: +12037399406)
+    ph_numbers = row[2] # example: '1 (203) 739-9406 +12037399406 01112037399406 0012037399406 12037399406 2037399406 7399406 '
+    if ph_numbers:
+        if ")" in ph_numbers:
+            ph_numbers = ph_numbers.split(")")
+            ph_numbers = ph_numbers[1]
+            ph_numbers = ph_numbers.split(" ")
+            ph_number = ph_numbers[2]
+        else: # example: '+12037399406 0111...'
+          ph_numbers = ph_numbers.split(" ")
+          ph_number = ph_number[0]
+
+    pgCursor.execute("SELECT phone_number FROM phone_numbers")
+
+    saved_numbers = pgCursor.fetchall()
+
+    for number in saved_numbers:
+        number = number[0]
+        if ph_number == number:
+            pgCursor.execute("UPDATE phone_numbers SET fname = (%s) \
+                              WHERE phone_number = %s", (row[0], ph_number))
+            pgCursor.execute("UPDATE phone_numbers SET lname = (%s) \
+                              WHERE phone_number = %s", (row[1], ph_number))
 
 pgConnection.commit()
+
+
 
 
 # close all connections
 sqliteConnection.close()
 pgConnection.close()
+
+
+# if we parsed through a .txt file of texts instead of querying:
 
 # to parse through message table
 
