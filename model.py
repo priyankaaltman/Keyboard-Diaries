@@ -18,13 +18,28 @@ class Person (db.Model):
     __tablename__ = "people" 
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    phone_number = db.Column(db.String)
+    phone_number = db.Column(db.String, unique=True)
     name = db.Column(db.String)
 
     def __repr__(self):
         """provide helpful representation when printed"""
 
         return f"""ID: {self.id}, Phone Number: {self.phone_number}, Name:{self.name}"""
+
+class PersonNumber (db.Model):
+
+    __tablename__ = "peoplenumbers"
+
+    phone_number = db.Column(db.String, db.ForeignKey('people.phone_number'))
+    provided_id = db.Column(db.Integer, primary_key=True)
+
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"""
+                Person ID: {self.provided_id}
+                Phone Number: {self.phone_number}
+                """
 
 class Message(db.Model):
     """A text."""
@@ -36,6 +51,9 @@ class Message(db.Model):
     date = db.Column(db.BigInteger)
     sender_id = db.Column(db.Integer, db.ForeignKey('people.id'))
     recipient_id = db.Column(db.Integer, db.ForeignKey('people.id'))
+
+    sender = db.relationship('Person', foreign_keys=[sender_id], backref='messages_received')
+    recipient = db.relationship('Person', foreign_keys=[recipient_id], backref='messages_sent')
 
     def convert_date(self):
         """date is given as a timestamp, seconds since 0:00, 1/1/2001, convert to actual date"""
@@ -54,9 +72,6 @@ class Message(db.Model):
 
         return actual_date
 
-    sender = db.relationship('Person', foreign_keys=[sender_id], backref='messages_received')
-    recipient = db.relationship('Person', foreign_keys=[recipient_id], backref='messages_sent')
-
     def __repr__(self):
         """provide helpful representation when printed"""
 
@@ -66,10 +81,6 @@ class Message(db.Model):
                 Date: {self.convert_date()}, 
                 Sender_ID: {self.sender_id}
                 """
-
-
-
-
 
 
 
@@ -91,5 +102,6 @@ if __name__ == "__main__":
     # you in a state of being able to work with the database directly.
     from flask import Flask
     app = Flask(__name__)
+
     connect_to_db(app)
     print("Connected to DB.")
