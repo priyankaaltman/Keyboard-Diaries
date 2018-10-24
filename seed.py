@@ -1,11 +1,12 @@
 """Seeding database for texts project."""
+
 import sqlite3
-from model import Message, PhoneNumber
+from model import Message, Person
 from model import connect_to_db, db 
 
 from datetime import datetime, timedelta
 
-def load_phone_numbers():
+def load_phone_numbers(database):
     """Load phone numbers from sqlite database into psql database."""
 
     print("Making Contacts Dictionary")
@@ -38,43 +39,44 @@ def load_phone_numbers():
 
         contacts[ph_number] = full_name
 
-    print("Adding names to phone numbers table")
+    print("Populating people table")
 
     # Delete all rows in table, so if we need to run this a second time,
     # we won't be trying to add duplicate users
-    PhoneNumber.query.delete()
+    Person.query.delete()
 
-    sqliteConnection = sqlite3.connect("phone_backup.db")
+    sqliteConnection = sqlite3.connect(database)
     sqliteCursor = sqliteConnection.cursor()
 
     sqliteCursor.execute("SELECT ROWID, id FROM handle")
 
     for row in sqliteCursor:
-        phone_number = PhoneNumber(id=row[0], phone_number=row[1])
+        phone_number = Person(id=row[0], phone_number=row[1])
         if row[1] in contacts.keys():
             phone_number.name = contacts[row[1]]
 
         db.session.add(phone_number)
-
-    me = PhoneNumber(id=0, phone_number="") # make me id 0 - later make this user input?
     
+    # make me id 0 - later make this user input, or grab from registration info?
+    me = Person(id=0, phone_number="", name='Priyanka Altman') 
+
     db.session.add(me)
 
     db.session.commit()
 
-def load_messages():
+def load_messages(database):
     """Load messages from sqlite database into psql database."""
-    print("Messages")
+    print("Populating messages table")
 
     # Delete all rows in table, so if we need to run this a second time,
     # we won't be trying to add duplicate messages
     Message.query.delete()
 
-    sqliteConnection = sqlite3.connect("phone_backup.db")
+    sqliteConnection = sqlite3.connect(database)
     sqliteCursor = sqliteConnection.cursor()
 
     # populate new phone numbers table
-    sqliteCursor.execute("SELECT text, handle_id, date_delivered, is_from_me FROM message")
+    sqliteCursor.execute("SELECT text, handle_id, date, is_from_me FROM message")
 
     for row in sqliteCursor:
         # if the text was sent FROM me
@@ -95,6 +97,7 @@ def load_messages():
         db.session.add(message)
 
     db.session.commit()
+    print("Done!")
 
 
 if __name__ == "__main__":
@@ -107,7 +110,7 @@ if __name__ == "__main__":
     db.create_all()
 
     # Import different types of data
-    load_phone_numbers()
-    load_messages()
+    load_phone_numbers("phone_backup.db")
+    load_messages("phone_backup.db")
 
 

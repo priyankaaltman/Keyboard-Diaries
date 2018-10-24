@@ -6,17 +6,16 @@ from datetime import datetime, timedelta
 # This is the connection to the PostgreSQL database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
 # object, where we do most of our interactions (like committing, etc.)
-
 db = SQLAlchemy()
 
 
 ##############################################################################
 # Model definitions
 
-class PhoneNumber (db.Model):
+class Person (db.Model):
     """A recipient of a message."""
 
-    __tablename__ = "phone_numbers" 
+    __tablename__ = "people" 
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     phone_number = db.Column(db.String)
@@ -25,7 +24,7 @@ class PhoneNumber (db.Model):
     def __repr__(self):
         """provide helpful representation when printed"""
 
-        return f"""ID: {self.id}, Phone Number: {self.phone_number}"""
+        return f"""ID: {self.id}, Phone Number: {self.phone_number}, Name:{self.name}"""
 
 class Message(db.Model):
     """A text."""
@@ -35,8 +34,8 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     text = db.Column(db.Text, nullable=True)
     date = db.Column(db.BigInteger)
-    sender_id = db.Column(db.Integer, db.ForeignKey('phone_numbers.id'))
-    recipient_id = db.Column(db.Integer, db.ForeignKey('phone_numbers.id'))
+    sender_id = db.Column(db.Integer, db.ForeignKey('people.id'))
+    recipient_id = db.Column(db.Integer, db.ForeignKey('people.id'))
 
     def convert_date(self):
         """date is given as a timestamp, seconds since 0:00, 1/1/2001, convert to actual date"""
@@ -55,13 +54,18 @@ class Message(db.Model):
 
         return actual_date
 
+    sender = db.relationship('Person', foreign_keys=[sender_id], backref='messages_received')
+    recipient = db.relationship('Person', foreign_keys=[recipient_id], backref='messages_sent')
+
     def __repr__(self):
         """provide helpful representation when printed"""
 
-        return f"""ID: {id},
-                   Text: {self.text}
-                   Date: {self.convert_date()}
-                   Sender_ID: {self.sender_id}"""
+        return f"""
+                ID: {self.id}, 
+                Text: {self.text}, 
+                Date: {self.convert_date()}, 
+                Sender_ID: {self.sender_id}
+                """
 
 
 
@@ -76,7 +80,7 @@ def connect_to_db(app):
     """Connect the database to our Flask app."""
 
     # Configure to use our PstgreSQL database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///pg_phone_backup'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///texts'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
