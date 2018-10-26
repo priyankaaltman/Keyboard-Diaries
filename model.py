@@ -18,27 +18,26 @@ class Person (db.Model):
     __tablename__ = "people" 
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    phone_number = db.Column(db.String, unique=True)
     name = db.Column(db.String)
 
     def __repr__(self):
         """provide helpful representation when printed"""
 
-        return f"""ID: {self.id}, Phone Number: {self.phone_number}, Name:{self.name}"""
+        return f"""ID: {self.id}, Name:{self.name}"""
 
 class PersonNumber (db.Model):
 
     __tablename__ = "peoplenumbers"
 
-    phone_number = db.Column(db.String, db.ForeignKey('people.phone_number'))
-    provided_id = db.Column(db.Integer, primary_key=True)
+    phone_number = db.Column(db.String, primary_key=True)
+    person_id = db.Column(db.Integer, db.ForeignKey('people.id'))
 
     def __repr__(self):
         """provide helpful representation when printed"""
 
         return f"""
-                Person ID: {self.provided_id}
                 Phone Number: {self.phone_number}
+                Person ID: {self.person_id}
                 """
 
 class Message(db.Model):
@@ -68,7 +67,11 @@ class Message(db.Model):
         elif self.date > 10000000000: # if date is in nanoseconds
             actual_date = jan1_2001 + timedelta(0, 0, self.date/1000)
 
-        actual_date = actual_date.strftime("%b %d, %Y, %H:%M:%S") # 'Aug 10, 2012, 01:15:22'
+        UTC_time_diff = -7*60*60 # 7 hours converted into seconds
+
+        actual_date += timedelta(0, UTC_time_diff)
+
+        actual_date = actual_date.strftime("%b %d, %Y, %I:%M:%S %p") # 'Aug 10, 2012, 01:15:22 AM'
 
         return actual_date
 
@@ -80,6 +83,7 @@ class Message(db.Model):
                 Text: {self.text}, 
                 Date: {self.convert_date()}, 
                 Sender_ID: {self.sender_id}
+                Recipient_ID: {self.recipient_id}
                 """
 
 
