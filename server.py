@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 
 from dateutil.relativedelta import *
 
+import emoji as e
+
 from seed import *
 
 
@@ -32,11 +34,6 @@ def index():
 
     return render_template("homepage.html")
 
-@app.route('/login')
-def login():
-    """Log in page."""
-
-
 
 @app.route("/contacts")
 def show_contacts():
@@ -54,12 +51,16 @@ def get_sender_by_message_id(message_id):
     return sender
 
 @app.route("/contacts/<int:name_id>")
-def get_messages_with_sender_id(name_id):
+def display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
 
     messages = Message.query.filter((Message.sender_id==name_id) | (Message.recipient_id == name_id)).order_by(Message.date).all()
 
-    return render_template("texts_with_person.html", messages=messages)
+    person = Person.query.filter(Person.id == name_id).one()
+
+    the_emoji = get_your_most_commonly_used_emoji_by_name(person.name)
+
+    return render_template("texts_with_person.html", messages=messages, name=person.name, the_emoji=the_emoji)
 
 def convert_date_to_nanoseconds(date):
     """Given a date in the format MM-DD-YYYY, convert it to nanoseconds since 01-01-2001."""
@@ -92,17 +93,64 @@ def get_messages_in_date_range():
 
     messages = Message.query.filter((start<=Message.date), (Message.date <= end),((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
 
-    return render_template("texts_with_person.html", messages=messages)
+    return render_template("texts_by_date.html", messages=messages)
 
 @app.route("/graph-frequencies")
-def get_message_count_in_date_range(name, interval, date_start, date_end): 
-    """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
+def display_graph_message_counts():
 
     name = request.args.get("name")
     interval = request.args.get("interval")
     date_start = request.args.get("start_date")
     date_end = request.args.get("end_date")
-    name2 = request.args.get("name2")
+    second_name = request.args.get("name2")
+
+    (timeblocks1, message_counts1) = get_message_count_in_date_range(name, interval, date_start, date_end)
+
+    if not second_name:
+         data_dict = { 
+            "labels": timeblocks1,
+             "datasets" : [
+             {
+                "data": message_counts1,
+                "label": name,
+                "fill": False,
+                "borderColor": '#33FDFF',
+                "pointRadius": 6,
+                "pointBackgroundColor": '#33FDFF',
+                "pointBorderColor": '#001516'}
+            ]
+        }
+
+    else:
+        (timeblocks2, message_counts2) = get_message_count_in_date_range(second_name, interval, date_start, date_end)
+
+        data_dict = { 
+            "labels": timeblocks1,
+             "datasets" : [
+             {
+                "data": message_counts1,
+                "label": name,
+                "fill": False,
+                "borderColor": '#33FDFF',
+                "pointRadius": 6,
+                "pointBackgroundColor": '#33FDFF',
+                "pointBorderColor": '#001516'},
+            {
+                "data": message_counts2,
+                "label": second_name,
+                "fill": False,
+                "borderColor": '#D51414',
+                "pointRadius": 6,
+                "pointBackgroundColor": '#D51414',
+                "pointBorderColor": '#001516'}
+            ]
+        }
+
+    return render_template("frequency-graph.html", data_dict=data_dict, interval=interval)
+
+
+def get_message_count_in_date_range(name, interval, date_start, date_end): 
+    """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
 
     person = Person.query.filter_by(name=name).one()
 
@@ -153,28 +201,40 @@ def get_message_count_in_date_range(name, interval, date_start, date_end):
 
             message_counts.append(message_count)
 
+    return (timeblocks, message_counts)
 
-    data_dict = { 
-            "labels": timeblocks,
-            "datasets" : [
-                {
-                    "data": message_counts,
-                    "label": name,
-                    "fill": False,
-                    "borderColor": '#33FDFF',
-                    "pointRadius": 6,
-                    "pointBackgroundColor": '#33FDFF',
-                    "pointBorderColor": '#001516'
-            }]
-        }
+def get_your_most_commonly_used_emoji_by_name(name):
+    """Get most commonly used emoji with a person by name."""
 
+    person = Person.query.filter_by(name=name).one()
 
-    return render_template("frequency-graph.html", data_dict=data_dict, interval=interval, name=name)
+    messages = Message.query.filter(Message.recipient_id == person.id).all()
 
-@app.route("/frequency-graph")
-def show_frequency_graph():
+    emoji_dict = {}
+    for message in messages:
+        for character in message.text:
+            if character in e.UNICODE_EMOJI:
+                emoji_dict[character] = emoji_dict.get(character, 0) + 1
 
-    return render_template("frequency-graph.html")
+    saved_count = 0
+    saved_emoji = ''
+    for (emoji, count) in emoji_dict.items():
+        if count > saved_count:
+            saved_count = count
+            saved_emoji = emoji
+
+    return saved_emoji
+
+@app.route("/keyword")
+def find_texts_by_keyword():
+    """Given a key word or phrase, return all the texts that contain it."""
+
+    keyword = request.args.get("keyword")
+
+    messages = Message.query.filter(Message.text.like(f"%{keyword}%")).all()
+
+    return render_template("texts_by_keyword.html", messages=messages)
+
 
 
 if __name__ == "__main__":
