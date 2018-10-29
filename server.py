@@ -3,12 +3,15 @@
 from jinja2 import StrictUndefined
 
 from flask import (Flask, render_template, redirect, request, flash, session,
-                   Markup)
+                   Markup, jsonify)
+
 from flask_debugtoolbar import DebugToolbarExtension
 
 from model import connect_to_db, db, Person, Message
 
 from datetime import datetime, timedelta
+
+from dateutil.relativedelta import *
 
 from seed import *
 
@@ -71,8 +74,6 @@ def convert_date_to_nanoseconds(date):
 
     seconds_difference = (difference.days*24*60*60) + difference.seconds
 
-    UTC_time_diff = -7*60*60 # 7 hours converted into seconds
-
     nanoseconds_difference = (seconds_difference*1000000000) + (difference.microseconds*1000)
 
     return nanoseconds_difference
@@ -92,6 +93,88 @@ def get_messages_in_date_range():
     messages = Message.query.filter((start<=Message.date), (Message.date <= end),((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
 
     return render_template("texts_with_person.html", messages=messages)
+
+@app.route("/graph-frequencies")
+def get_message_count_in_date_range(name, interval, date_start, date_end): 
+    """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
+
+    name = request.args.get("name")
+    interval = request.args.get("interval")
+    date_start = request.args.get("start_date")
+    date_end = request.args.get("end_date")
+    name2 = request.args.get("name2")
+
+    person = Person.query.filter_by(name=name).one()
+
+    if interval == "Year":
+        temp_start = int(date_start)
+        timeblocks = []
+
+        while temp_start < int(date_end):
+            timeblocks.append(temp_start)
+            temp_start += 1
+
+        message_counts = []
+        for year in timeblocks:
+            full_start_date = f"01-01-{year}"
+            full_end_date = f"01-01-{year+1}"
+
+            start = convert_date_to_nanoseconds(full_start_date)
+            end = convert_date_to_nanoseconds(full_end_date)
+
+            message_count = Message.query.filter((start <= Message.date), (Message.date < end),
+                                                 ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+
+
+            message_counts.append(message_count)
+
+    if interval == "Month":
+        timeblocks = []
+        temp_start = datetime.strptime(date_start, "%m-%Y")
+        temp_end = datetime.strptime(date_end, "%m-%Y")
+        while temp_start < temp_end:
+            formatted_temp_start = temp_start.strftime("%B %Y")
+            timeblocks.append(formatted_temp_start)
+            temp_start += relativedelta(months=+1)
+
+        message_counts = []
+        for month in timeblocks:
+            month_as_dt_obj = datetime.strptime(month, "%B %Y")
+            formatted_start_date = month_as_dt_obj.strftime("%m-%d-%Y")
+            new_temp_end = month_as_dt_obj + relativedelta(months=+1)
+            formatted_temp_end = new_temp_end.strftime("%m-%d-%Y")
+
+            start = convert_date_to_nanoseconds(formatted_start_date)
+            end = convert_date_to_nanoseconds(formatted_temp_end)
+
+            message_count = Message.query.filter((start <= Message.date), (Message.date < end),
+                                                 ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+
+
+            message_counts.append(message_count)
+
+
+    data_dict = { 
+            "labels": timeblocks,
+            "datasets" : [
+                {
+                    "data": message_counts,
+                    "label": name,
+                    "fill": False,
+                    "borderColor": '#33FDFF',
+                    "pointRadius": 6,
+                    "pointBackgroundColor": '#33FDFF',
+                    "pointBorderColor": '#001516'
+            }]
+        }
+
+
+    return render_template("frequency-graph.html", data_dict=data_dict, interval=interval, name=name)
+
+@app.route("/frequency-graph")
+def show_frequency_graph():
+
+    return render_template("frequency-graph.html")
 
 
 if __name__ == "__main__":

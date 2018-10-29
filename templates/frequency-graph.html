@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<canvas id="myGraph"></canvas>
+
+<script>
+
+    const options = {
+      title: {
+        display: true,
+        text: 'Texts with {{ name }} Over Time'
+      },
+      scales: {
+        xAxes: [{
+            display: true,
+            scaleLabel: {
+                display: true,
+                labelString: '{{ interval }}'
+        }
+        }],
+        yAxes: [{
+            display: true,
+            scaleLabel: {
+                display: true,
+                labelString: 'Number of Texts'
+            }
+        }]
+        }
+    };
+
+    let ctx = $("#myGraph").get(0).getContext("2d")
+
+    
+    let myLineChart = Chart.Line(ctx, {
+                                type: 'line',
+                                data: {{ data_dict | tojson }},
+
+                                options: options
+                                });
+    
+    
+
+</script>
+
+{% endblock %}
