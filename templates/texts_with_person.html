@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h2> Your Most Commonly Used Emoji with {{ name }}: {{ the_emoji }} </h2>
+<h3> Your Most Commonly Used Emoji with {{ name }}: {{ the_emoji }} </h3>
+
+<h3>{{ name }} has sent you {{ number_received }} texts, totaling {{ words_received }} words.</h3>
+
+<h3>You have sent {{name}} {{ number_sent }} texts, totaling {{ words_sent }} words.</h3>
+
+
 
 <form id=keyword-search>
     Search by a key word or phrase: <input type="text" name="keyword">

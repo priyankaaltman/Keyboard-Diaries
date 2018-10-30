@@ -43,12 +43,12 @@ def show_contacts():
     return render_template("contacts.html", contacts=contacts)
 
 
-def get_sender_by_message_id(message_id):
-    """Given a message id, return the name of the person who sent it."""
+# def get_sender_by_message_id(message_id):
+#     """Given a message id, return the name of the person who sent it."""
 
-    sender = Message.query.get(message_id).sender
+#     sender = Message.query.get(message_id).sender
 
-    return sender
+#     return sender
 
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
@@ -60,7 +60,21 @@ def display_info_about_contact(name_id):
 
     the_emoji = get_your_most_commonly_used_emoji_by_name(person.name)
 
-    return render_template("texts_with_person.html", messages=messages, name=person.name, the_emoji=the_emoji)
+    number_sent = count_number_sent_texts_by_name(person.name)
+
+    number_received = count_number_received_texts_by_name(person.name)
+
+    words_sent = count_words_in_sent_texts_with_name(person.name)
+
+    words_received = count_words_in_received_texts_with_name(person.name)
+
+    return render_template("texts_with_person.html", messages=messages, 
+                                                     name=person.name, 
+                                                     the_emoji=the_emoji, 
+                                                     number_sent=number_sent, 
+                                                     number_received=number_received,
+                                                     words_sent=words_sent,
+                                                     words_received=words_received)
 
 def convert_date_to_nanoseconds(date):
     """Given a date in the format MM-DD-YYYY, convert it to nanoseconds since 01-01-2001."""
@@ -235,6 +249,54 @@ def find_texts_by_keyword():
 
     return render_template("texts_by_keyword.html", messages=messages)
 
+def count_words_in_sent_texts_with_name(name):
+    """Count how many words are in texts with a person."""
+
+    person = Person.query.filter_by(name=name).one()
+
+    messages = Message.query.filter(Message.recipient_id == person.id).all()
+
+    num_words = 0
+    for message in messages:
+        if message.text:
+            split_text = message.text.split(" ")
+            num_words += len(split_text)
+
+    return num_words
+
+def count_words_in_received_texts_with_name(name):
+    """Count how many words are in texts with a person."""
+
+    person = Person.query.filter_by(name=name).one()
+
+    messages = Message.query.filter(Message.sender_id == person.id).all()
+
+    num_words = 0
+    for message in messages:
+        if message.text:
+            split_text = message.text.split(" ")
+            num_words += len(split_text)
+
+    return num_words
+
+
+def count_number_received_texts_by_name(name):
+    """Given a person, count how many texts they have sent you."""
+
+    person = Person.query.filter_by(name=name).one()
+
+    number_received = Message.query.filter(Message.sender_id == person.id).count()
+
+    return number_received
+
+def count_number_sent_texts_by_name(name):
+    """Given a person, count how many texts you have sent them."""
+    
+    person = Person.query.filter_by(name=name).one()
+
+    number_sent = Message.query.filter(Message.recipient_id == person.id).count()
+
+    return number_sent
 
 
 if __name__ == "__main__":
