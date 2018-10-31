@@ -53,6 +53,8 @@ class Message(db.Model):
 
     sender = db.relationship('Person', foreign_keys=[sender_id], backref='messages_received')
     recipient = db.relationship('Person', foreign_keys=[recipient_id], backref='messages_sent')
+    folders = db.relationship("Folder", secondary="foldermessages", backref="messages")
+
 
     def convert_date(self):
         """date is given as a timestamp, seconds since 0:00, 1/1/2001, convert to actual date"""
@@ -86,7 +88,22 @@ class Message(db.Model):
                 Recipient_ID: {self.recipient_id}
                 """
 
+class Folder(db.Model):
+    """A folder that can contain many texts."""
 
+    __tablename__ = "folders"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String, unique=True)
+
+class FolderMessage(db.Model):
+    """An association table between texts and folders."""
+
+    __tablename__ = "foldermessages"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    folder_id = db.Column(db.Integer, db.ForeignKey('folders.id'), nullable=False)
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
 
 ##############################################################################
 # Helper functions-

@@ -7,11 +7,23 @@
   <ul>
     {% for message in messages %}
       <li>
-        
-        {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+        <button id='save'>Save to a Folder</button>
+        {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }} 
         
       </li>
     {% endfor %}
   </ul>
+
+<script>
+    "use strict";
+
+    const save_button = document.querySelector("#save")
+
+    function saveOnClick(){
+        
+    }
+
+    button.addEventListener('click', saveOnClick)
+
 
 {% endblock %}

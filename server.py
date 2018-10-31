@@ -43,13 +43,6 @@ def show_contacts():
     return render_template("contacts.html", contacts=contacts)
 
 
-# def get_sender_by_message_id(message_id):
-#     """Given a message id, return the name of the person who sent it."""
-
-#     sender = Message.query.get(message_id).sender
-
-#     return sender
-
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
@@ -279,7 +272,6 @@ def count_words_in_received_texts_with_name(name):
 
     return num_words
 
-
 def count_number_received_texts_by_name(name):
     """Given a person, count how many texts they have sent you."""
 
@@ -297,6 +289,7 @@ def count_number_sent_texts_by_name(name):
     number_sent = Message.query.filter(Message.recipient_id == person.id).count()
 
     return number_sent
+
 
 
 if __name__ == "__main__":
