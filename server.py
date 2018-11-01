@@ -7,7 +7,7 @@ from flask import (Flask, render_template, redirect, request, flash, session,
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db, Person, Message
+from model import connect_to_db, db, Person, Message, Folder
 
 from datetime import datetime, timedelta
 
@@ -155,7 +155,6 @@ def display_graph_message_counts():
 
     return render_template("frequency-graph.html", data_dict=data_dict, interval=interval)
 
-
 def get_message_count_in_date_range(name, interval, date_start, date_end): 
     """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
 
@@ -291,6 +290,27 @@ def count_number_sent_texts_by_name(name):
     return number_sent
 
 
+@app.route("/folders")
+def show_folders():
+
+    folders = Folder.query.all()
+
+    return render_template("folders.html", folders=folders)
+
+
+@app.route("/new-folder")
+def make_new_folder():
+    """Make a new folder into which texts can be saved."""
+
+    folder_name = request.args.get("folder_name")
+
+    new_folder = Folder(title=folder_name)
+
+    db.session.add(new_folder)
+
+    db.session.commit()
+
+    return redirect("/folders")
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the

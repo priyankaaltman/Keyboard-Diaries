@@ -8,7 +8,7 @@
     {% for message in messages %}
       <li>
         
-        {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+        {{ message.convert_date() }}, {{ message.sender.name }} to {{ message.recipient.name }}: {{ message.text }}
         
       </li>
     {% endfor %}

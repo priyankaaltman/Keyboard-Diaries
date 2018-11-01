@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2> Make a new folder </h2>
+
+<form action="/new-folder" id="new-folder-form">
+    Title of Folder: <input type="text" name="folder_name">
+    <input type="submit" value="Add Folder">
+</form>
+
+{% endblock %}
