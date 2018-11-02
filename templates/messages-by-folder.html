@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>{{folder_title }}</h2>
+
+<ul>
+  {% for message in messages %}
+    <li>
+      {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+    </li>
+  {% endfor %}
+</ul>
+  
+
+{% endblock %}

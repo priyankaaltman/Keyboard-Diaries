@@ -7,7 +7,7 @@ from flask import (Flask, render_template, redirect, request, flash, session,
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db, Person, Message, Folder
+from model import connect_to_db, db, Person, Message, Folder, FolderMessage
 
 from datetime import datetime, timedelta
 
@@ -100,7 +100,9 @@ def get_messages_in_date_range():
 
     messages = Message.query.filter((start<=Message.date), (Message.date <= end),((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
 
-    return render_template("texts_by_date.html", messages=messages)
+    folders = Folder.query.all()
+
+    return render_template("texts_by_date.html", messages=messages, folders=folders)
 
 @app.route("/graph-frequencies")
 def display_graph_message_counts():
@@ -311,6 +313,45 @@ def make_new_folder():
     db.session.commit()
 
     return redirect("/folders")
+
+@app.route("/add-message-to-folder")
+def add_message_to_folder():
+    """Add a chosen message to a chosen folder."""
+
+    message_id = request.args.get("message_id")
+    folder_id = request.args.get("folder_id")
+
+    new_folder_message = FolderMessage(folder_id=folder_id, message_id=message_id)
+
+    db.session.add(new_folder_message)
+
+    db.session.commit()
+
+    return redirect(f"/folders/{folder_id}")
+
+@app.route("/folders/<int:folder_id>")
+def show_messages_in_folder(folder_id):
+
+    # get a list of FolderMessage objects associated with this folder id
+    foldermessages = FolderMessage.query.filter_by(folder_id=folder_id).all()
+
+    message_ids = []
+
+    for foldermessage in foldermessages:
+
+        message_id = foldermessage.message_id
+
+        message_ids.append(message_id)
+
+    messages = Message.query.filter(Message.id.in_(message_ids)).all()
+
+    folder = Folder.query.filter_by(id=folder_id).one()
+
+    folder_title = folder.title
+
+    return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
+
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
