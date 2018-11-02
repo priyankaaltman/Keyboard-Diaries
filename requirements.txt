@@ -1,4 +1,6 @@
+argon2-cffi==18.3.0
 blinker==1.4
+cffi==1.11.5
 Click==7.0
 emoji==0.5.1
 Flask==1.0.2
@@ -7,7 +9,9 @@ Flask-SQLAlchemy==2.3.2
 ItsDangerous==1.0.0
 Jinja2==2.10
 MarkupSafe==1.0
+passlib==1.7.1
 psycopg2==2.7.5
+pycparser==2.19
 python-dateutil==2.7.5
 six==1.11.0
 SQLAlchemy==1.2.12
