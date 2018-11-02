@@ -7,11 +7,13 @@ from flask import (Flask, render_template, redirect, request, flash, session,
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db, Person, Message, Folder, FolderMessage
+from model import connect_to_db, db, Person, Message, Folder, FolderMessage, User
 
 from utility import *
 
 from seed import *
+
+from passlib.hash import argon2
 
 app = Flask(__name__)
 
@@ -27,8 +29,100 @@ app.jinja_env.undefined = StrictUndefined
 def index():
     """Homepage."""
 
-    return render_template("homepage.html")
+    if "user_id" in session.keys():
+        return render_template("homepage.html")
+    else:
+        message = Markup("Please log in to view your homepage.")
+        flash(message)
+        return render_template("login.html")
+        
 
+@app.route("/registration")
+def show_registration_page():
+    """Show registration page."""
+
+    return render_template("registration.html")
+
+@app.route("/login")
+def show_login_page():
+    """Show login page."""
+
+    return render_template("login.html")
+
+@app.route("/process-registration", methods=["POST"])
+def register_new_user():
+    """Register a new user."""
+
+    name = request.form.get("name")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    hashed = argon2.hash(password)
+
+    email_users = db.session.query(User.email)
+    emails = email_users.filter(User.email == email).all()
+
+    if emails == []:
+        user = User(name=name, email=email, password_hash=hashed)
+        db.session.add(user)
+        db.session.commit()
+        session["user_id"] = user.id
+        message = Markup("You are now registered.")
+        flash(message)
+        return render_template("homepage.html")
+
+    else:
+        message = Markup("There is already an account associated with this email address.")
+        flash(message)
+        return render_template("login.html")
+
+@app.route("/process-login", methods=["POST"])
+def log_in_user():
+    """Log in an existing user."""
+
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    email_users = db.session.query(User.email)
+    saved_email = email_users.filter(User.email == email).first()
+
+    # if the email is not in the database
+    if not saved_email:
+        message = Markup("This email is not registered. Please register now.")
+        flash(message)
+        return redirect("/registration")
+
+    # if the email is saved in the database
+    else:
+        user_obj = User.query.filter(User.email == email).first()
+        saved_hash = user_obj.password_hash
+
+        # if the right password was entered
+        if argon2.verify(password, saved_hash):
+            session["user_id"] = user_obj.id
+            message = Markup("You are now logged in.")
+            flash(message)
+            return redirect("/")
+        # if the wrong password was entered
+        else:
+            message = Markup("Incorrect password. Please try again.")
+            flash(message)
+            return render_template("login.html")
+
+@app.route("/logout")
+def show_logout_page():
+    """Bring a currently logged in user to the logout page."""
+
+    return render_template("logout.html")
+
+@app.route("/process-logout")
+def log_out_user():
+    """Log out a user."""
+
+    session.clear()
+    message = Markup("You have been successfully logged out.")
+    flash(message)
+
+    return render_template("login.html")
 
 @app.route("/contacts")
 def show_contacts():

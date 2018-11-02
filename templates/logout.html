@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Are You Sure You Want to Log Out?</h1>
+
+<form action="/process-logout">
+    <input type="submit" value="Yes, log me out!">
+</form>
+
+
+{% endblock %}
