@@ -241,7 +241,9 @@ def find_texts_by_keyword():
 
     messages = Message.query.filter(Message.text.like(f"%{keyword}%")).all()
 
-    return render_template("texts_by_keyword.html", messages=messages)
+    folders = Folder.query.all()
+
+    return render_template("texts_by_keyword.html", messages=messages, folders=folders)
 
 def count_words_in_sent_texts_with_name(name):
     """Count how many words are in texts with a person."""

@@ -7,9 +7,16 @@
   <ul>
     {% for message in messages %}
       <li>
-        
-        {{ message.convert_date() }}, {{ message.sender.name }} to {{ message.recipient.name }}: {{ message.text }}
-        
+        <form action="/add-message-to-folder">
+        <select name="folder_id"> 
+          {% for folder in folders %}
+            <option value="{{ folder.id }}">{{ folder.title }} </option>
+          {% endfor %}
+        </select>
+        <input type="hidden" name="message_id" value="{{ message.id }}">
+          {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }} 
+        <input type="submit" value="Add to Folder">
+        </form>
       </li>
     {% endfor %}
   </ul>
