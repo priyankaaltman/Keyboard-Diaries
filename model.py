@@ -114,6 +114,10 @@ class User (db.Model):
     email = db.Column(db.String)
     password_hash = db.Column(db.String)
 
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"""ID: {self.id}, Name:{self.name}, Email: {self.email}"""
 ##############################################################################
 # Helper functions-
 

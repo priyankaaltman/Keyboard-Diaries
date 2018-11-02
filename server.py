@@ -35,7 +35,6 @@ def index():
         message = Markup("Please log in to view your homepage.")
         flash(message)
         return render_template("login.html")
-        
 
 @app.route("/registration")
 def show_registration_page():
@@ -131,7 +130,6 @@ def show_contacts():
     contacts = Person.query.order_by(Person.name).all()
     return render_template("contacts.html", contacts=contacts)
 
-
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
@@ -157,7 +155,6 @@ def display_info_about_contact(name_id):
                                                      number_received=number_received,
                                                      words_sent=words_sent,
                                                      words_received=words_received)
-
 
 @app.route("/daterange", methods=["POST"])
 def get_messages_in_date_range(): 
@@ -230,7 +227,6 @@ def display_graph_message_counts():
 
     return render_template("frequency-graph.html", data_dict=data_dict, interval=interval)
 
-
 @app.route("/keyword")
 def find_texts_by_keyword():
     """Given a key word or phrase, return all the texts that contain it."""
@@ -242,7 +238,6 @@ def find_texts_by_keyword():
     folders = Folder.query.all()
 
     return render_template("texts_by_keyword.html", messages=messages, folders=folders)
-
 
 @app.route("/folders")
 def show_folders():
@@ -301,7 +296,6 @@ def show_messages_in_folder(folder_id):
     folder_title = folder.title
 
     return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
-
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
