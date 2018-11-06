@@ -3,12 +3,47 @@
 
   <h2>Contacts</h2>
 
+  <h3>Current Groups</h3>
+
+  <ul>
+    {% for group in groups %}
+      <li>
+        <a href="/contacts/group/{{ group.id }}">
+          {{ group.title }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+<h3> Make a new group </h3>
+
+<form action="/new-group" id="new-group-form">
+    Title of Group: <input type="text" name="group_name">
+    <input type="submit" value="Add Group">
+</form>
+
+  <h3>All Contacts</h3>
+
   <ul>
     {% for contact in contacts %}
       <li>
+        <form action="/add-person-to-group">
+
+        <select name="group_id"> 
+          {% for group in groups %}
+            <option value="{{ group.id }}">{{ group.title }} </option>
+          {% endfor %}
+        </select>
+
+        <input type="hidden" name="person_name" value="{{ contact.name }}">
+
         <a href="/contacts/{{ contact.id }}">
           {{ contact.name }}
         </a>
+
+        <input type="submit" value="Add to Group">
+
+        </form>
       </li>
     {% endfor %}
   </ul>

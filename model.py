@@ -21,6 +21,9 @@ class Person (db.Model):
     name = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
+    groups = db.relationship("Group", secondary="groupmembers", backref="members")
+
+
     def __repr__(self):
         """provide helpful representation when printed"""
 
@@ -117,6 +120,20 @@ class Folder(db.Model):
 foldermessages = db.Table('foldermessages', 
                           db.Column('folder_id', db.Integer, db.ForeignKey('folders.id')),
                           db.Column('message_id', db.Integer, db.ForeignKey('messages.id')))
+
+class Group(db.Model):
+    """A table for groups of contacts (similar to folders for messages)."""
+
+    __tablename__ = "groups"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+groupmembers = db.Table('groupmembers', 
+                       db.Column('group_id', db.Integer, db.ForeignKey('groups.id')),
+                       db.Column('person_id', db.Integer, db.ForeignKey('people.id')))
+
 
 class User (db.Model):
 

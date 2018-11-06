@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>{{ group_title }}</h2>
+
+<ul>
+    {% for member in members %}
+      <li>
+        <a href="/contacts/{{ member.id }}">
+          {{ member.name }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  
+
+{% endblock %}

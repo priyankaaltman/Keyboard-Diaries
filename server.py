@@ -9,7 +9,7 @@ from werkzeug import secure_filename
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db, Person, Message, Folder, User
+from model import connect_to_db, db, Person, Message, Folder, User, Group
 
 from utility import *
 
@@ -170,8 +170,11 @@ def log_out_user():
 def show_contacts():
     """Show contact names and phone numbers."""
 
+    groups = Group.query.filter(Group.user_id == session["user_id"]).all()
+
     contacts = Person.query.filter(Person.user_id==session["user_id"]).order_by(Person.name).all()
-    return render_template("contacts.html", contacts=contacts)
+
+    return render_template("contacts.html", contacts=contacts, groups=groups)
 
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
@@ -181,6 +184,8 @@ def display_info_about_contact(name_id):
                                    ((Message.sender_id==name_id) | (Message.recipient_id == name_id))).order_by(Message.date).all()
 
     person = Person.query.filter((Person.user_id==session["user_id"]), (Person.id == name_id)).one()
+
+    groups = Group.query.filter(Group.user_id == session["user_id"]).all()
 
     user_id = session["user_id"]
 
@@ -202,7 +207,8 @@ def display_info_about_contact(name_id):
                                                      number_sent=number_sent, 
                                                      number_received=number_received,
                                                      words_sent=words_sent,
-                                                     words_received=words_received)
+                                                     words_received=words_received,
+                                                     groups=groups)
 
 @app.route("/daterange", methods=["POST"])
 def get_messages_in_date_range(): 
@@ -360,6 +366,50 @@ def show_messages_in_folder(folder_id):
     messages = folder.messages # list of messages in that folder
 
     return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
+
+@app.route("/new-group")
+def make_new_group():
+
+    group_name = request.args.get("group_name")
+
+    new_group = Group(user_id=session["user_id"], title=group_name)
+
+    db.session.add(new_group)
+
+    db.session.commit()
+
+    return redirect("/contacts")
+
+@app.route("/add-person-to-group")
+def add_person_to_group():
+    
+    group_id = request.args.get("group_id")
+    name = request.args.get("person_name")
+
+    print("NAME: ", name)
+
+    person = Person.query.filter(Person.name == name, Person.user_id == session["user_id"]).one()
+    group = Group.query.filter(Group.id==group_id, Group.user_id == session["user_id"]).one()
+
+    group.members.append(person)
+
+    db.session.add(group)
+
+    db.session.commit()
+
+    return redirect(f"/contacts/group/{group_id}")
+
+
+@app.route("/contacts/group/<int:group_id>")
+def show_people_in_group(group_id):
+
+    group = Group.query.filter(Group.id==group_id, Group.user_id == session["user_id"]).one()
+
+    group_title = group.title
+
+    members = group.members # list of people in that group
+
+    return render_template("people-by-group.html", members=members, group_title=group_title)
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
