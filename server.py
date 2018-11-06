@@ -293,6 +293,24 @@ def find_texts_by_keyword():
 
     return render_template("texts_by_keyword.html", messages=messages, folders=folders)
 
+@app.route("/keyword-person")
+def find_texts_by_keyword_and_person():
+    """Find texts that match on a keyword or phrase with a specific person from their page."""
+
+    keyword = request.args.get("keyword")
+    name = request.args.get("person_name")
+
+    person = Person.query.filter((Person.user_id == session["user_id"]),
+                                 Person.name == name).one()
+
+    messages = Message.query.filter((Message.user_id==session["user_id"]), 
+                                    (Message.text.like(f"%{keyword}%")),
+                                    ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).all()
+
+    folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
+
+    return render_template("texts_by_keyword.html", messages=messages, folders=folders)
+
 @app.route("/folders")
 def show_folders():
 

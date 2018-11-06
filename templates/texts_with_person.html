@@ -7,6 +7,11 @@
 
 <h3>You have sent {{name}} {{ number_sent }} texts, totaling {{ words_sent }} words.</h3>
 
+<form action="/keyword-person">
+    Key word or phrase: <input type="text" name="keyword">
+    <input type="hidden" name="person_name" value="{{ name }}">
+    <input type="submit">
+</form>
 
   <h2>Texts</h2>
 
