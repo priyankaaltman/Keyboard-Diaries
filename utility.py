@@ -1,6 +1,6 @@
 """Utility functions for project."""
 
-from model import connect_to_db, db, Person, Message, Folder, FolderMessage
+from model import connect_to_db, db, Person, Message, Folder
 
 import emoji as e
 
@@ -25,30 +25,36 @@ def convert_date_to_nanoseconds(date):
 
     return nanoseconds_difference
 
-def count_number_received_texts_by_name(name):
+def count_number_received_texts_by_name(name, user_id):
     """Given a person, count how many texts they have sent you."""
 
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
-    number_received = Message.query.filter(Message.sender_id == person.id).count()
+    number_received = Message.query.filter(Message.sender_id == person.id, 
+                                           Message.user_id==user_id).count()
 
     return number_received
 
-def count_number_sent_texts_by_name(name):
+def count_number_sent_texts_by_name(name, user_id):
     """Given a person, count how many texts you have sent them."""
     
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
-    number_sent = Message.query.filter(Message.recipient_id == person.id).count()
+    number_sent = Message.query.filter(Message.recipient_id == person.id, 
+                                       Message.user_id==user_id).count()
 
     return number_sent
 
-def count_words_in_received_texts_with_name(name):
+def count_words_in_received_texts_with_name(name, user_id):
     """Count how many words are in texts with a person."""
 
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
-    messages = Message.query.filter(Message.sender_id == person.id).all()
+    messages = Message.query.filter(Message.sender_id == person.id, 
+                                    Message.user_id==user_id).all()
 
     num_words = 0
     for message in messages:
@@ -58,12 +64,14 @@ def count_words_in_received_texts_with_name(name):
 
     return num_words
 
-def count_words_in_sent_texts_with_name(name):
+def count_words_in_sent_texts_with_name(name, user_id):
     """Count how many words are in texts with a person."""
 
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
-    messages = Message.query.filter(Message.recipient_id == person.id).all()
+    messages = Message.query.filter(Message.recipient_id == person.id, 
+                                    Message.user_id==user_id).all()
 
     num_words = 0
     for message in messages:
@@ -73,10 +81,11 @@ def count_words_in_sent_texts_with_name(name):
 
     return num_words
 
-def get_message_count_in_date_range(name, interval, date_start, date_end): 
+def get_message_count_in_date_range(name, interval, date_start, date_end, user_id): 
     """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
 
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
     if interval == "Year":
         temp_start = int(date_start)
@@ -94,8 +103,10 @@ def get_message_count_in_date_range(name, interval, date_start, date_end):
             start = convert_date_to_nanoseconds(full_start_date)
             end = convert_date_to_nanoseconds(full_end_date)
 
-            message_count = Message.query.filter((start <= Message.date), (Message.date < end),
-                                                 ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+            message_count = Message.query.filter((start <= Message.date), 
+                                                (Message.date < end),
+                                                (Message.user_id == user_id),
+                                                ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
 
 
             message_counts.append(message_count)
@@ -119,20 +130,24 @@ def get_message_count_in_date_range(name, interval, date_start, date_end):
             start = convert_date_to_nanoseconds(formatted_start_date)
             end = convert_date_to_nanoseconds(formatted_temp_end)
 
-            message_count = Message.query.filter((start <= Message.date), (Message.date < end),
-                                                 ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+            message_count = Message.query.filter((start <= Message.date), 
+                                                (Message.date < end),
+                                                (Message.user_id == user_id),
+                                                ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
 
 
             message_counts.append(message_count)
 
     return (timeblocks, message_counts)
 
-def get_your_most_commonly_used_emoji_by_name(name):
+def get_your_most_commonly_used_emoji_by_name(name, user_id):
     """Get most commonly used emoji with a person by name."""
 
-    person = Person.query.filter_by(name=name).one()
+    person = Person.query.filter(Person.name==name, 
+                                 Person.user_id==user_id).one()
 
-    messages = Message.query.filter(Message.recipient_id == person.id).all()
+    messages = Message.query.filter((Message.recipient_id == person.id), 
+                                    (Message.user_id == user_id)).all()
 
     emoji_dict = {}
     for message in messages:

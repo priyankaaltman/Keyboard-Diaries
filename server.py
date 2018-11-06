@@ -5,9 +5,11 @@ from jinja2 import StrictUndefined
 from flask import (Flask, render_template, redirect, request, flash, session,
                    Markup, jsonify)
 
+from werkzeug import secure_filename
+
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db, Person, Message, Folder, FolderMessage, User
+from model import connect_to_db, db, Person, Message, Folder, User
 
 from utility import *
 
@@ -16,6 +18,9 @@ from seed import *
 from passlib.hash import argon2
 
 app = Flask(__name__)
+connect_to_db(app)
+db.create_all()
+
 
 # Required to use Flask sessions and the debug toolbar
 app.secret_key = "ABC"
@@ -25,12 +30,18 @@ app.secret_key = "ABC"
 # error.
 app.jinja_env.undefined = StrictUndefined
 
+
 @app.route('/')
 def index():
     """Homepage."""
 
     if "user_id" in session.keys():
-        return render_template("homepage.html")
+        user = User.query.filter(User.id == session["user_id"]).first()
+        if user:
+            name = user.name
+        else:
+            name = "None"
+        return render_template("homepage.html", name=name)
     else:
         message = Markup("Please log in to view your homepage.")
         flash(message)
@@ -65,14 +76,46 @@ def register_new_user():
         db.session.add(user)
         db.session.commit()
         session["user_id"] = user.id
+        session["name"] = user.name
         message = Markup("You are now registered.")
         flash(message)
-        return render_template("homepage.html")
+        return render_template("upload.html")
 
     else:
         message = Markup("There is already an account associated with this email address.")
         flash(message)
         return render_template("login.html")
+
+@app.route('/upload')
+def show_upload_page():
+
+    return render_template(upload.html)
+
+@app.route('/process-upload', methods=['POST'])
+def upload_file():
+    contacts = request.files['contacts']
+    texts = request.files['texts']
+
+    contacts_filename = secure_filename(contacts.filename)
+    texts_filename = secure_filename(texts.filename)
+
+    contacts.save(contacts_filename)
+    texts.save(texts_filename)
+
+    user_id = session["user_id"]
+    name = session["name"]
+
+    # adding the information of the newly uploaded files to the database:
+
+    # connect_to_db(app)
+    # db.create_all()  # In case tables haven't been created, create them
+
+    # these functions are imported from seed.py
+    load_people_table(contacts_filename, user_id, name)
+    load_peoplenumbers_table(contacts_filename, texts_filename, user_id, name)
+    load_messages(texts_filename, user_id, name)
+
+    return redirect("/")
 
 @app.route("/process-login", methods=["POST"])
 def log_in_user():
@@ -127,26 +170,31 @@ def log_out_user():
 def show_contacts():
     """Show contact names and phone numbers."""
 
-    contacts = Person.query.order_by(Person.name).all()
+    contacts = Person.query.filter(Person.user_id==session["user_id"]).order_by(Person.name).all()
     return render_template("contacts.html", contacts=contacts)
 
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
 
-    messages = Message.query.filter((Message.sender_id==name_id) | (Message.recipient_id == name_id)).order_by(Message.date).all()
+    messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                   ((Message.sender_id==name_id) | (Message.recipient_id == name_id))).order_by(Message.date).all()
 
-    person = Person.query.filter(Person.id == name_id).one()
+    person = Person.query.filter((Person.user_id==session["user_id"]), (Person.id == name_id)).one()
 
-    the_emoji = get_your_most_commonly_used_emoji_by_name(person.name)
+    user_id = session["user_id"]
 
-    number_sent = count_number_sent_texts_by_name(person.name)
+    print("LOOK HERE: ", user_id)
 
-    number_received = count_number_received_texts_by_name(person.name)
+    the_emoji = get_your_most_commonly_used_emoji_by_name(person.name, user_id)
 
-    words_sent = count_words_in_sent_texts_with_name(person.name)
+    number_sent = count_number_sent_texts_by_name(person.name, user_id)
 
-    words_received = count_words_in_received_texts_with_name(person.name)
+    number_received = count_number_received_texts_by_name(person.name, user_id)
+
+    words_sent = count_words_in_sent_texts_with_name(person.name, user_id)
+
+    words_received = count_words_in_received_texts_with_name(person.name, user_id)
 
     return render_template("texts_with_person.html", messages=messages, 
                                                      name=person.name, 
@@ -166,9 +214,12 @@ def get_messages_in_date_range():
     start = convert_date_to_nanoseconds(date_start)
     end = convert_date_to_nanoseconds(date_end)
 
-    person = Person.query.filter_by(name=name)[0]
+    person = Person.query.filter(Person.name==name, 
+                                (Person.user_id==session["user_id"]))[0]
 
-    messages = Message.query.filter((start<=Message.date), (Message.date <= end),((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
+    messages = Message.query.filter((Message.user_id==session["user_id"]), 
+                                    (start<=Message.date), (Message.date <= end),
+                                    ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
 
     folders = Folder.query.all()
 
@@ -183,7 +234,9 @@ def display_graph_message_counts():
     date_end = request.args.get("end_date")
     second_name = request.args.get("name2")
 
-    (timeblocks1, message_counts1) = get_message_count_in_date_range(name, interval, date_start, date_end)
+    user_id = session["user_id"]
+
+    (timeblocks1, message_counts1) = get_message_count_in_date_range(name, interval, date_start, date_end, user_id)
 
     if not second_name:
          data_dict = { 
@@ -201,7 +254,7 @@ def display_graph_message_counts():
         }
 
     else:
-        (timeblocks2, message_counts2) = get_message_count_in_date_range(second_name, interval, date_start, date_end)
+        (timeblocks2, message_counts2) = get_message_count_in_date_range(second_name, interval, date_start, date_end, user_id)
 
         data_dict = { 
             "labels": timeblocks1,
@@ -233,16 +286,17 @@ def find_texts_by_keyword():
 
     keyword = request.args.get("keyword")
 
-    messages = Message.query.filter(Message.text.like(f"%{keyword}%")).all()
+    messages = Message.query.filter((Message.user_id==session["user_id"]), 
+                                    (Message.text.like(f"%{keyword}%"))).all()
 
-    folders = Folder.query.all()
+    folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
     return render_template("texts_by_keyword.html", messages=messages, folders=folders)
 
 @app.route("/folders")
 def show_folders():
 
-    folders = Folder.query.all()
+    folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
     return render_template("folders.html", folders=folders)
 
@@ -252,7 +306,7 @@ def make_new_folder():
 
     folder_name = request.args.get("folder_name")
 
-    new_folder = Folder(title=folder_name)
+    new_folder = Folder(user_id=session["user_id"], title=folder_name)
 
     db.session.add(new_folder)
 
@@ -267,9 +321,12 @@ def add_message_to_folder():
     message_id = request.args.get("message_id")
     folder_id = request.args.get("folder_id")
 
-    new_folder_message = FolderMessage(folder_id=folder_id, message_id=message_id)
+    folder = Folder.query.filter(Folder.id==folder_id, Folder.user_id == session["user_id"]).one()
+    message = Message.query.filter(Message.id==message_id, Message.user_id == session["user_id"]).one()
 
-    db.session.add(new_folder_message)
+    folder.messages.append(message)
+
+    db.session.add(folder)
 
     db.session.commit()
 
@@ -278,22 +335,11 @@ def add_message_to_folder():
 @app.route("/folders/<int:folder_id>")
 def show_messages_in_folder(folder_id):
 
-    # get a list of FolderMessage objects associated with this folder id
-    foldermessages = FolderMessage.query.filter_by(folder_id=folder_id).all()
-
-    message_ids = []
-
-    for foldermessage in foldermessages:
-
-        message_id = foldermessage.message_id
-
-        message_ids.append(message_id)
-
-    messages = Message.query.filter(Message.id.in_(message_ids)).all()
-
-    folder = Folder.query.filter_by(id=folder_id).one()
+    folder = Folder.query.filter(Folder.id==folder_id, Folder.user_id == session["user_id"]).one()
 
     folder_title = folder.title
+
+    messages = folder.messages # list of messages in that folder
 
     return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
 

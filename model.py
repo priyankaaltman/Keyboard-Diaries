@@ -19,18 +19,25 @@ class Person (db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
         """provide helpful representation when printed"""
 
-        return f"""ID: {self.id}, Name:{self.name}"""
+        return f"""
+                ID: {self.id}
+                Name:{self.name}
+                User:{self.user_id}
+                """
 
 class PersonNumber (db.Model):
 
     __tablename__ = "peoplenumbers"
 
-    phone_number = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    phone_number = db.Column(db.String)
     person_id = db.Column(db.Integer, db.ForeignKey('people.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
         """provide helpful representation when printed"""
@@ -38,6 +45,7 @@ class PersonNumber (db.Model):
         return f"""
                 Phone Number: {self.phone_number}
                 Person ID: {self.person_id}
+                User ID: {self.user_id}
                 """
 
 class Message(db.Model):
@@ -46,6 +54,7 @@ class Message(db.Model):
     __tablename__ = "messages"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     text = db.Column(db.Text, nullable=True)
     date = db.Column(db.BigInteger)
     sender_id = db.Column(db.Integer, db.ForeignKey('people.id'))
@@ -81,11 +90,12 @@ class Message(db.Model):
         """provide helpful representation when printed"""
 
         return f"""
-                ID: {self.id}, 
-                Text: {self.text}, 
-                Date: {self.convert_date()}, 
+                ID: {self.id}
+                Text: {self.text}
+                Date: {self.convert_date()}
                 Sender_ID: {self.sender_id}
                 Recipient_ID: {self.recipient_id}
+                User ID: {self.user_id}
                 """
 
 class Folder(db.Model):
@@ -95,15 +105,18 @@ class Folder(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-class FolderMessage(db.Model):
-    """An association table between texts and folders."""
+    def __repr__(self):
+        """provide helpful representation when printed"""
 
-    __tablename__ = "foldermessages"
+        return f"""ID: {self.id}, Title:{self.title}, User: {self.user_id}"""
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    folder_id = db.Column(db.Integer, db.ForeignKey('folders.id'), nullable=False)
-    message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=False)
+
+
+foldermessages = db.Table('foldermessages', 
+                          db.Column('folder_id', db.Integer, db.ForeignKey('folders.id')),
+                          db.Column('message_id', db.Integer, db.ForeignKey('messages.id')))
 
 class User (db.Model):
 
@@ -117,7 +130,13 @@ class User (db.Model):
     def __repr__(self):
         """provide helpful representation when printed"""
 
-        return f"""ID: {self.id}, Name:{self.name}, Email: {self.email}"""
+        return f"""
+                ID: {self.id} 
+                Name:{self.name} 
+                Email: {self.email}
+                """
+
+
 ##############################################################################
 # Helper functions-
 
