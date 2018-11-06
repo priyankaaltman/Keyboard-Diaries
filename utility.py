@@ -25,6 +25,21 @@ def convert_date_to_nanoseconds(date):
 
     return nanoseconds_difference
 
+def convert_datetime_to_nanoseconds(datetime_obj):
+    """Given a datetime object, convert it to nanoseconds since 01-01-2001."""
+
+    jan1_2001 = datetime.strptime("01-01-2001, 00:00:00.000000", "%m-%d-%Y, %H:%M:%S.%f")
+
+    difference = datetime_obj - jan1_2001
+
+    UTC_time_diff = 7*60*60 # 7 hours converted into seconds
+
+    seconds_difference = (difference.days*24*60*60) + difference.seconds + UTC_time_diff
+
+    nanoseconds_difference = (seconds_difference*1000000000) + (difference.microseconds*1000)
+
+    return nanoseconds_difference
+
 def count_number_received_texts_by_name(name, user_id):
     """Given a person, count how many texts they have sent you."""
 
@@ -163,4 +178,5 @@ def get_your_most_commonly_used_emoji_by_name(name, user_id):
             saved_emoji = emoji
 
     return saved_emoji
+
 

@@ -17,6 +17,11 @@ from seed import *
 
 from passlib.hash import argon2
 
+from datetime import date
+
+from dateutil.relativedelta import *
+
+
 app = Flask(__name__)
 connect_to_db(app)
 db.create_all()
@@ -399,7 +404,6 @@ def add_person_to_group():
 
     return redirect(f"/contacts/group/{group_id}")
 
-
 @app.route("/contacts/group/<int:group_id>")
 def show_people_in_group(group_id):
 
@@ -410,6 +414,46 @@ def show_people_in_group(group_id):
     members = group.members # list of people in that group
 
     return render_template("people-by-group.html", members=members, group_title=group_title)
+
+@app.route("/one-year-ago-today")
+def show_messages_on_this_day():
+
+    today = date.today() # datetime.date(2018, 11, 6)
+
+    year_ago = today - relativedelta(years=+1) #datetime.date(2017, 11, 6)
+
+    # need to get 0:00 of one_year_ago in nanoseconds
+    year_ago_start = datetime(year=year_ago.year, 
+                              month=year_ago.month, 
+                              day=year_ago.day, 
+                              hour=0, 
+                              minute=0, 
+                              second=0, 
+                              microsecond=0)
+
+
+    # need to get 0:00 of one_year_ago + one day in nanoseconds
+    year_ago_next_day = year_ago + relativedelta(days=+1)
+
+    year_ago_end = datetime(year=year_ago_next_day.year, 
+                            month=year_ago_next_day.month, 
+                            day=year_ago_next_day.day, 
+                            hour=0, 
+                            minute=0, 
+                            second=0, 
+                            microsecond=0)
+
+    start = convert_datetime_to_nanoseconds(year_ago_start)
+    end = convert_datetime_to_nanoseconds(year_ago_end)
+
+    # then do query to find texts between those two nanoseconds
+    messages = Message.query.filter((Message.user_id==session["user_id"]), 
+                                    (start<=Message.date), (Message.date < end)).order_by(Message.date).all()
+
+    return render_template("one-year-ago-today.html", messages=messages)
+
+
+
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
