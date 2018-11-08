@@ -167,9 +167,10 @@ def get_most_loved_emoji(name, user_id):
 
     emoji_dict = {}
     for message in messages:
-        for character in message.text:
-            if character in e.UNICODE_EMOJI:
-                emoji_dict[character] = emoji_dict.get(character, 0) + 1
+        if message.text:
+            for character in message.text:
+                if character in e.UNICODE_EMOJI:
+                    emoji_dict[character] = emoji_dict.get(character, 0) + 1
 
     saved_count = 0
     saved_emoji = ''
