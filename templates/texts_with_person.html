@@ -8,7 +8,7 @@
 <h3>You have sent {{name}} {{ number_sent }} texts, totaling {{ words_sent }} words.</h3>
 
 <h3> Search your texts with {{ name }} by keyword or phrase: </h3>
-<form action="/keyword-person">
+<form action="/keyword">
     Key word or phrase: <input type="text" name="keyword">
     <input type="hidden" name="person_name" value="{{ name }}">
     <input type="submit">
@@ -16,7 +16,7 @@
 
 <h3> Add {{ name }} to a group: </h3>
 
-<form action="/add-person-to-group">
+<form action="/add-person-to-group" method="POST">
 
     <select name="group_id"> 
       {% for group in groups %}

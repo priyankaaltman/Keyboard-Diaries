@@ -11,9 +11,7 @@ from dateutil.relativedelta import *
 def convert_date_to_nanoseconds(date):
     """Given a date in the format MM-DD-YYYY, convert it to nanoseconds since 01-01-2001."""
 
-    jan1_2001 = "01-01-2001"
-
-    jan1_2001 = datetime.strptime(jan1_2001, "%m-%d-%Y")
+    jan1_2001 = datetime.strptime("01-01-2001", "%m-%d-%Y")
 
     date = datetime.strptime(date, "%m-%d-%Y")
 
@@ -102,6 +100,9 @@ def get_message_count_in_date_range(name, interval, date_start, date_end, user_i
     person = Person.query.filter(Person.name==name, 
                                  Person.user_id==user_id).one()
 
+    to_or_from_contact = (Message.sender_id==person.id) | (Message.recipient_id == person.id)
+
+
     if interval == "Year":
         temp_start = int(date_start)
         timeblocks = []
@@ -118,10 +119,10 @@ def get_message_count_in_date_range(name, interval, date_start, date_end, user_i
             start = convert_date_to_nanoseconds(full_start_date)
             end = convert_date_to_nanoseconds(full_end_date)
 
-            message_count = Message.query.filter((start <= Message.date), 
-                                                (Message.date < end),
-                                                (Message.user_id == user_id),
-                                                ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+            message_count = Message.query.filter(start <= Message.date, 
+                                                Message.date < end,
+                                                Message.user_id == user_id,
+                                                to_or_from_contact).count()
 
 
             message_counts.append(message_count)
@@ -145,17 +146,17 @@ def get_message_count_in_date_range(name, interval, date_start, date_end, user_i
             start = convert_date_to_nanoseconds(formatted_start_date)
             end = convert_date_to_nanoseconds(formatted_temp_end)
 
-            message_count = Message.query.filter((start <= Message.date), 
-                                                (Message.date < end),
-                                                (Message.user_id == user_id),
-                                                ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).count()
+            message_count = Message.query.filter(start <= Message.date, 
+                                                Message.date < end,
+                                                Message.user_id == user_id,
+                                                to_or_from_contact).count()
 
 
             message_counts.append(message_count)
 
     return (timeblocks, message_counts)
 
-def get_your_most_commonly_used_emoji_by_name(name, user_id):
+def get_most_loved_emoji(name, user_id):
     """Get most commonly used emoji with a person by name."""
 
     person = Person.query.filter(Person.name==name, 

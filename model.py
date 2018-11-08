@@ -107,7 +107,7 @@ class Folder(db.Model):
     __tablename__ = "folders"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String, unique=True)
+    title = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
@@ -127,8 +127,13 @@ class Group(db.Model):
     __tablename__ = "groups"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String, unique=True)
+    title = db.Column(db.String)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"""ID: {self.id}, Title:{self.title}, User: {self.user_id}"""
 
 groupmembers = db.Table('groupmembers', 
                        db.Column('group_id', db.Integer, db.ForeignKey('groups.id')),

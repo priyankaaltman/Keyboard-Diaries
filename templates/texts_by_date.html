@@ -7,7 +7,7 @@
   <ul>
     {% for message in messages %}
       <li>
-        <form action="/add-message-to-folder">
+        <form action="/add-message-to-folder" method="POST">
         <select name="folder_id"> 
           {% for folder in folders %}
             <option value="{{ folder.id }}">{{ folder.title }} </option>

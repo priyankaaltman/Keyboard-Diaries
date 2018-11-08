@@ -17,7 +17,7 @@
 
 <h3> Make a new group </h3>
 
-<form action="/new-group" id="new-group-form">
+<form action="/new-group" id="new-group-form" method="POST">
     Title of Group: <input type="text" name="group_name">
     <input type="submit" value="Add Group">
 </form>
@@ -27,7 +27,7 @@
   <ul>
     {% for contact in contacts %}
       <li>
-        <form action="/add-person-to-group">
+        <form action="/add-person-to-group" method="POST">
 
         <select name="group_id"> 
           {% for group in groups %}

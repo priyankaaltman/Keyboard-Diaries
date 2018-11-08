@@ -76,7 +76,7 @@ def register_new_user():
     email_users = db.session.query(User.email)
     emails = email_users.filter(User.email == email).all()
 
-    if emails == []:
+    if not emails:
         user = User(name=name, email=email, password_hash=hashed)
         db.session.add(user)
         db.session.commit()
@@ -94,7 +94,7 @@ def register_new_user():
 @app.route('/upload')
 def show_upload_page():
 
-    return render_template(upload.html)
+    return render_template("upload.html")
 
 @app.route('/process-upload', methods=['POST'])
 def upload_file():
@@ -110,10 +110,7 @@ def upload_file():
     user_id = session["user_id"]
     name = session["name"]
 
-    # adding the information of the newly uploaded files to the database:
-
-    # connect_to_db(app)
-    # db.create_all()  # In case tables haven't been created, create them
+    # adding the information of the newly uploaded files to the databases:
 
     # these functions are imported from seed.py
     load_people_table(contacts_filename, user_id, name)
@@ -122,21 +119,21 @@ def upload_file():
 
     return redirect("/")
 
-@app.route("/process-login", methods=["POST"])
+@app.route("/process-login")
 def log_in_user():
     """Log in an existing user."""
 
-    email = request.form.get("email")
-    password = request.form.get("password")
+    email = request.args.get("email")
+    password = request.args.get("password")
 
     email_users = db.session.query(User.email)
     saved_email = email_users.filter(User.email == email).first()
 
-    # if the email is not in the database
+    # if email is not in the database
     if not saved_email:
-        message = Markup("This email is not registered. Please register now.")
-        flash(message)
-        return redirect("/registration")
+        message = Markup("Invalid credentials.")
+        flash(message)        
+        return redirect("/login")
 
     # if the email is saved in the database
     else:
@@ -146,14 +143,15 @@ def log_in_user():
         # if the right password was entered
         if argon2.verify(password, saved_hash):
             session["user_id"] = user_obj.id
+            session["name"] = user_obj.name
             message = Markup("You are now logged in.")
             flash(message)
             return redirect("/")
         # if the wrong password was entered
         else:
-            message = Markup("Incorrect password. Please try again.")
+            message = Markup("Invalid credentials.")
             flash(message)
-            return render_template("login.html")
+            return redirect("/login")
 
 @app.route("/logout")
 def show_logout_page():
@@ -185,8 +183,10 @@ def show_contacts():
 def display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
 
+    to_or_from_contact = (Message.sender_id==name_id) | (Message.recipient_id == name_id)
+
     messages = Message.query.filter(Message.user_id==session["user_id"], 
-                                   ((Message.sender_id==name_id) | (Message.recipient_id == name_id))).order_by(Message.date).all()
+                                   to_or_from_contact).order_by(Message.date).all()
 
     person = Person.query.filter((Person.user_id==session["user_id"]), (Person.id == name_id)).one()
 
@@ -194,9 +194,7 @@ def display_info_about_contact(name_id):
 
     user_id = session["user_id"]
 
-    print("LOOK HERE: ", user_id)
-
-    the_emoji = get_your_most_commonly_used_emoji_by_name(person.name, user_id)
+    the_emoji = get_most_loved_emoji(person.name, user_id)
 
     number_sent = count_number_sent_texts_by_name(person.name, user_id)
 
@@ -215,12 +213,12 @@ def display_info_about_contact(name_id):
                                                      words_received=words_received,
                                                      groups=groups)
 
-@app.route("/daterange", methods=["POST"])
+@app.route("/daterange")
 def get_messages_in_date_range(): 
     """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
-    name = request.form.get("name")
-    date_start = request.form.get("start_date")
-    date_end = request.form.get("end_date")
+    name = request.args.get("name")
+    date_start = request.args.get("start_date")
+    date_end = request.args.get("end_date")
 
     start = convert_date_to_nanoseconds(date_start)
     end = convert_date_to_nanoseconds(date_end)
@@ -228,11 +226,15 @@ def get_messages_in_date_range():
     person = Person.query.filter(Person.name==name, 
                                 (Person.user_id==session["user_id"]))[0]
 
-    messages = Message.query.filter((Message.user_id==session["user_id"]), 
-                                    (start<=Message.date), (Message.date <= end),
-                                    ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).order_by(Message.date).all()
+    to_or_from_contact = (Message.sender_id==person.id) | (Message.recipient_id == person.id)
 
-    folders = Folder.query.all()
+
+    messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                    start<=Message.date, 
+                                    Message.date <= end,
+                                    to_or_from_contact).order_by(Message.date).all()
+
+    folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
     return render_template("texts_by_date.html", messages=messages, folders=folders)
 
@@ -247,76 +249,60 @@ def display_graph_message_counts():
 
     user_id = session["user_id"]
 
+    data_dict = {"datasets" : [{
+        "fill": False,
+        "pointRadius": 6,
+        "pointBorderColor": '#001516',
+    }, {
+        "fill": False,
+        "pointRadius": 6,
+        "pointBorderColor": '#001516',
+    }]}
+
     (timeblocks1, message_counts1) = get_message_count_in_date_range(name, interval, date_start, date_end, user_id)
 
-    if not second_name:
-         data_dict = { 
-            "labels": timeblocks1,
-             "datasets" : [
-             {
-                "data": message_counts1,
-                "label": name,
-                "fill": False,
-                "borderColor": '#33FDFF',
-                "pointRadius": 6,
-                "pointBackgroundColor": '#33FDFF',
-                "pointBorderColor": '#001516'}
-            ]
-        }
+    data_dict["labels"] = timeblocks1
+    lines_list = data_dict["datasets"]
+    lines_list[0]["data"] = message_counts1
+    lines_list[0]["label"] = name
+    lines_list[0]["borderColor"] = "#33FDFF"
+    lines_list[0]["pointBackgroundColor"] = "#33FDFF"
 
+    if not second_name:
+        lines_list.pop() # remove the settings for the second line if there isn't one
     else:
         (timeblocks2, message_counts2) = get_message_count_in_date_range(second_name, interval, date_start, date_end, user_id)
-
-        data_dict = { 
-            "labels": timeblocks1,
-             "datasets" : [
-             {
-                "data": message_counts1,
-                "label": name,
-                "fill": False,
-                "borderColor": '#33FDFF',
-                "pointRadius": 6,
-                "pointBackgroundColor": '#33FDFF',
-                "pointBorderColor": '#001516'},
-            {
-                "data": message_counts2,
-                "label": second_name,
-                "fill": False,
-                "borderColor": '#D51414',
-                "pointRadius": 6,
-                "pointBackgroundColor": '#D51414',
-                "pointBorderColor": '#001516'}
-            ]
-        }
+        lines_list[1]["data"] = message_counts2
+        lines_list[1]["label"] = second_name
+        lines_list[1]["borderColor"] = "#D51414"
+        lines_list[1]["pointBackgroundColor"] = "#D51414"
 
     return render_template("frequency-graph.html", data_dict=data_dict, interval=interval)
 
 @app.route("/keyword")
 def find_texts_by_keyword():
-    """Given a key word or phrase, return all the texts that contain it."""
-
-    keyword = request.args.get("keyword")
-
-    messages = Message.query.filter((Message.user_id==session["user_id"]), 
-                                    (Message.text.like(f"%{keyword}%"))).all()
-
-    folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
-
-    return render_template("texts_by_keyword.html", messages=messages, folders=folders)
-
-@app.route("/keyword-person")
-def find_texts_by_keyword_and_person():
     """Find texts that match on a keyword or phrase with a specific person from their page."""
 
-    keyword = request.args.get("keyword")
-    name = request.args.get("person_name")
 
-    person = Person.query.filter((Person.user_id == session["user_id"]),
-                                 Person.name == name).one()
+    form_data = request.args.to_dict()
+    
+    keyword = form_data["keyword"]
 
-    messages = Message.query.filter((Message.user_id==session["user_id"]), 
-                                    (Message.text.like(f"%{keyword}%")),
-                                    ((Message.sender_id == person.id) | (Message.recipient_id == person.id))).all()
+    if "person_name" in form_data.keys():
+        name = form_data["person_name"]
+
+        person = Person.query.filter(Person.user_id == session["user_id"],
+                                     Person.name == name).one()
+
+        to_or_from_contact = (Message.sender_id == person.id) | (Message.recipient_id == person.id)
+
+        messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                        Message.text.like(f"%{keyword}%"),
+                                        to_or_from_contact).all()
+
+    else:
+        messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                        Message.text.like(f"%{keyword}%")).all()
 
     folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
@@ -329,11 +315,11 @@ def show_folders():
 
     return render_template("folders.html", folders=folders)
 
-@app.route("/new-folder")
+@app.route("/new-folder", methods=["POST"])
 def make_new_folder():
     """Make a new folder into which texts can be saved."""
 
-    folder_name = request.args.get("folder_name")
+    folder_name = request.form.get("folder_name")
 
     new_folder = Folder(user_id=session["user_id"], title=folder_name)
 
@@ -343,12 +329,12 @@ def make_new_folder():
 
     return redirect("/folders")
 
-@app.route("/add-message-to-folder")
+@app.route("/add-message-to-folder", methods=["POST"])
 def add_message_to_folder():
     """Add a chosen message to a chosen folder."""
 
-    message_id = request.args.get("message_id")
-    folder_id = request.args.get("folder_id")
+    message_id = request.form.get("message_id")
+    folder_id = request.form.get("folder_id")
 
     folder = Folder.query.filter(Folder.id==folder_id, Folder.user_id == session["user_id"]).one()
     message = Message.query.filter(Message.id==message_id, Message.user_id == session["user_id"]).one()
@@ -372,10 +358,10 @@ def show_messages_in_folder(folder_id):
 
     return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
 
-@app.route("/new-group")
+@app.route("/new-group", methods=["POST"])
 def make_new_group():
 
-    group_name = request.args.get("group_name")
+    group_name = request.form.get("group_name")
 
     new_group = Group(user_id=session["user_id"], title=group_name)
 
@@ -385,13 +371,11 @@ def make_new_group():
 
     return redirect("/contacts")
 
-@app.route("/add-person-to-group")
+@app.route("/add-person-to-group", methods=["POST"])
 def add_person_to_group():
     
-    group_id = request.args.get("group_id")
-    name = request.args.get("person_name")
-
-    print("NAME: ", name)
+    group_id = request.form.get("group_id")
+    name = request.form.get("person_name")
 
     person = Person.query.filter(Person.name == name, Person.user_id == session["user_id"]).one()
     group = Group.query.filter(Group.id==group_id, Group.user_id == session["user_id"]).one()
