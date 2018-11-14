@@ -1,31 +1,20 @@
 """Texts Analysis"""
 
 from jinja2 import StrictUndefined
-
 from flask import (Flask, render_template, redirect, request, flash, session,
                    Markup, jsonify)
-
 from werkzeug import secure_filename
-
 from flask_debugtoolbar import DebugToolbarExtension
-
 from model import connect_to_db, db, Person, Message, Folder, User, Group
-
 from utility import *
-
 from seed import *
-
 from passlib.hash import argon2
-
 from datetime import date
-
 from dateutil.relativedelta import *
-
 
 app = Flask(__name__)
 connect_to_db(app)
 db.create_all()
-
 
 # Required to use Flask sessions and the debug toolbar
 app.secret_key = "ABC"
@@ -35,9 +24,14 @@ app.secret_key = "ABC"
 # error.
 app.jinja_env.undefined = StrictUndefined
 
+@app.route('/index')
+def index():
+
+    return render_template("index.html")
+
 
 @app.route('/')
-def index():
+def home():
     """Homepage."""
 
     if "user_id" in session.keys():
@@ -65,7 +59,7 @@ def show_login_page():
     return render_template("login.html")
 
 @app.route("/process-registration", methods=["POST"])
-def register_new_user():
+def process_registration():
     """Register a new user."""
 
     name = request.form.get("name")
