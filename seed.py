@@ -43,7 +43,7 @@ def make_contacts_dictionary(contacts_database):
         except IndexError:
             continue
 
-        pattern = re.compile('\+\d\d\d\d\d\d\d\d\d\d\d')
+        pattern = re.compile(r'\+\d\d\d\d\d\d\d\d\d\d\d') # test this, if fails, remove r
 
         try:
             match = pattern.search(ph_numbers) 

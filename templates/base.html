@@ -3,6 +3,9 @@
 <head>
   <title>Text Analysis</title>
 
+  <link rel="stylesheet"
+        href="/static/styles.css">
+
 </head>
 
 <body>
@@ -30,7 +33,7 @@
    <form action="/">
     <input type="submit" value="Go Home">
   </form>
-
+  
   <div class="flashes">
     {% for message in get_flashed_messages() %}
       {{ message }}

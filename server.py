@@ -163,6 +163,7 @@ def log_out_user():
 
     return render_template("login.html")
 
+
 @app.route("/contacts")
 def show_contacts():
     """Show contact names and phone numbers."""
@@ -173,11 +174,10 @@ def show_contacts():
 
     return render_template("contacts.html", contacts=contacts, groups=groups)
 
+
 @app.route("/api/contacts")
 def api_show_contacts():
     """Show contact names and phone numbers."""
-
-    groups = Group.query.filter(Group.user_id == session["user_id"]).all()
 
     contacts = Person.query.filter(Person.user_id==session["user_id"]).order_by(Person.name).all()
 
@@ -191,6 +191,14 @@ def api_show_contacts():
 
         json_contacts.append(contact_attributes)
 
+    return jsonify({'contacts': json_contacts})
+
+
+@app.route("/api/groups")
+def api_show_groups():
+
+    groups = Group.query.filter(Group.user_id == session["user_id"]).all()
+
     json_groups = []
     for group in groups:
         group_attributes = {
@@ -201,7 +209,8 @@ def api_show_contacts():
 
         json_groups.append(group_attributes)
 
-    return jsonify({'contacts': json_contacts, 'groups': json_groups})
+    return jsonify({'groups': json_groups})
+
 
 @app.route("/contacts/<int:name_id>")
 def display_info_about_contact(name_id):
@@ -241,25 +250,18 @@ def display_info_about_contact(name_id):
 def api_display_info_about_contact(name_id):
     """Given the name of a person, return all messages sent and received by that person, in order by date."""
 
-    to_or_from_contact = (Message.sender_id==name_id) | (Message.recipient_id == name_id)
+    to_or_from_contact = (Message.sender_id == name_id) | (Message.recipient_id == name_id)
 
     messages = Message.query.filter(Message.user_id==session["user_id"], 
                                    to_or_from_contact).order_by(Message.date).all()
 
     person = Person.query.filter((Person.user_id==session["user_id"]), (Person.id == name_id)).one()
-
     groups = Group.query.filter(Group.user_id == session["user_id"]).all()
-
     user_id = session["user_id"]
-
     the_emoji = get_most_loved_emoji(person.name, user_id)
-
     number_sent = count_number_sent_texts_by_name(person.name, user_id)
-
     number_received = count_number_received_texts_by_name(person.name, user_id)
-
     words_sent = count_words_in_sent_texts_with_name(person.name, user_id)
-
     words_received = count_words_in_received_texts_with_name(person.name, user_id)
 
     groups_in = person.groups
@@ -268,20 +270,20 @@ def api_display_info_about_contact(name_id):
     for group in person.groups:
         group_titles.append(group.title)
 
-
     json_contact_info = [
         {
-        'name': person.name,
-        'most_loved_emoji': the_emoji,
-        'number_sent': number_sent,
-        'number_received': number_received,
-        'words_sent': words_sent,
-        'words_received': words_received,
-        'groups': group_titles
+            'name': person.name,
+            'most_loved_emoji': the_emoji,
+            'number_sent': number_sent,
+            'number_received': number_received,
+            'words_sent': words_sent,
+            'words_received': words_received,
+            'groups': group_titles
         }
     ]
 
     return jsonify({"contact_info": json_contact_info})
+
 
 @app.route("/daterange")
 def get_messages_in_date_range(): 
@@ -298,7 +300,6 @@ def get_messages_in_date_range():
 
     to_or_from_contact = (Message.sender_id==person.id) | (Message.recipient_id == person.id)
 
-
     messages = Message.query.filter(Message.user_id==session["user_id"], 
                                     start<=Message.date, 
                                     Message.date <= end,
@@ -307,6 +308,7 @@ def get_messages_in_date_range():
     folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
     return render_template("texts_by_date.html", messages=messages, folders=folders)
+
 
 @app.route('/api/daterange')
 def api_get_messages_in_date_range(): 
@@ -322,7 +324,6 @@ def api_get_messages_in_date_range():
                                 (Person.user_id==session["user_id"]))[0]
 
     to_or_from_contact = (Message.sender_id==person.id) | (Message.recipient_id == person.id)
-
 
     messages = Message.query.filter(Message.user_id==session["user_id"], 
                                     start<=Message.date, 
@@ -354,8 +355,8 @@ def api_get_messages_in_date_range():
 
         json_folders.append(folder_attributes)
 
-
     return jsonify({'messages': json_messages, 'folders': json_folders})
+
 
 @app.route("/graph-frequencies")
 def display_graph_message_counts():
@@ -409,24 +410,27 @@ def api_display_graph_message_counts():
 
     user_id = session["user_id"]
 
-    data_dict = {"datasets" : [{
-        "fill": False,
-        "pointRadius": 6,
-        "pointBorderColor": '#001516',
-    }, {
-        "fill": False,
-        "pointRadius": 6,
-        "pointBorderColor": '#001516',
+    data_dict = {"datasets" : [
+        {
+            "fill": False,
+            "pointRadius": 6,
+            "pointBorderColor": '#001516',
+        },
+        {
+            "fill": False,
+            "pointRadius": 6,
+            "pointBorderColor": '#001516',
     }]}
 
     (timeblocks1, message_counts1) = get_message_count_in_date_range(name, interval, date_start, date_end, user_id)
 
     data_dict["labels"] = timeblocks1
+    first_line = data_dict["datasets"][0]
     lines_list = data_dict["datasets"]
-    lines_list[0]["data"] = message_counts1
-    lines_list[0]["label"] = name
-    lines_list[0]["borderColor"] = "#33FDFF"
-    lines_list[0]["pointBackgroundColor"] = "#33FDFF"
+    first_line["data"] = message_counts1
+    first_line["label"] = name
+    first_line["borderColor"] = "#33FDFF"
+    first_line["pointBackgroundColor"] = "#33FDFF"
 
     if not second_name:
         lines_list.pop() # remove the settings for the second line if there isn't one
@@ -439,12 +443,12 @@ def api_display_graph_message_counts():
 
     return jsonify(data_dict)
 
+
 @app.route("/keyword")
 def find_texts_by_keyword():
     """Find texts that match on a keyword or phrase with a specific person from their page."""
 
     form_data = request.args.to_dict()
-    
     keyword = form_data["keyword"]
 
     if "person_name" in form_data.keys():
@@ -745,6 +749,15 @@ def api_show_messages_on_this_day():
     # then do query to find texts between those two nanoseconds
     messages = Message.query.filter((Message.user_id==session["user_id"]), 
                                     (start<=Message.date), (Message.date < end)).order_by(Message.date).all()
+
+    me = Person.query.filter(Person.name == session["name"]).one()
+
+    friends = set()
+    for message in messages:
+        if message.sender not in friends and message.sender != me:
+            friends.add(message.sender)
+        elif message.recipient not in friends and message.recipient != me:
+            friends.add(message.recipient)
 
     json_messages = []
     for message in messages:
