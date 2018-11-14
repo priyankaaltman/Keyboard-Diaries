@@ -1,0 +1,27 @@
+.App {
+    border: 5px solid blue;
+}
+
+.Navbar{
+    border: 5px solid red;
+}
+
+.Sidebar{
+    border: 5px solid green;
+}
+
+.Body{
+    border: 5px solid purple;
+}
+
+.navbutton{
+    border: 2px solid black;
+}
+
+.sidebarsection{
+    border: 2px dotted black;
+}
+
+.bodysection{
+    border: 2px dotted black;
+}
