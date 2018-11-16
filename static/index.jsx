@@ -1,13 +1,33 @@
 'use strict';
-
+// import DatePicker from "react-datepicker";
+// import moment from "moment";
+// import "react-datepicker/dist/react-datepicker.css"
 
 class App extends React.Component {
+
+    constructor(props){
+        super(props);
+        this.state = {
+            start_date: '',
+            end_date: '',
+            keyword: ''
+        };
+    }
+
+    handleGeneralSearch(event, start_date, end_date, keyword) {
+        event.preventDefault();
+
+        fetch('/api/general-search', {start_date, end_date, keyword})
+            .then(response => response.text())
+            .then(data => console.log(data));
+    }
+
     render() {
         return (
           <div className="App">
             <Navbar/>
             <Sidebar/>
-            <Body />
+            <Body onGeneralSearch = {(event, start_date, end_date, keyword) => this.handleGeneralSearch(event, start_date, end_date, keyword)}/>
           </div>
         )
     }
@@ -61,7 +81,7 @@ class LogInOrOutButton extends React.Component {
 }
 
 class UploadButton extends React.Component {
-     render () {
+    render () {
         return (
             <a href="/upload" className="navbutton">Upload</a>
         )
@@ -148,26 +168,81 @@ class Body extends React.Component {
         return (
             <div className="Body">
                 <OnThisDay />
-                <GeneralSearch />
+                <GeneralSearch handleSubmit={this.props.onGeneralSearch}/>
                 <Folders />
+
             </div>
         )
     }
 }
 
 class OnThisDay extends React.Component {
-    render() {
+    
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            friends: [],
+        };
+    }
+
+    componentDidMount() {
+        fetch('/api/one-year-ago-today')
+            .then(response => response.json())
+            .then(data => this.setState( { friends: data.friends } ))
+    }
+    
+    render(){
         return (
             <div className="bodysection">
+                <h2>On This Day</h2>
+                <div>
+                    {this.state.friends.map(function(object) {
+                        return(
+                            <li key={object.id}>See conversation with {object.name}</li>
+                        );
+                    })}
+                </div>
             </div>
-        )
+        );
     }
 }
 
 class GeneralSearch extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            'start_date': '',
+            'end_date': '',
+            'keyword': '',
+            'messages': []
+        }
+
+        this.onChange = this.onChange.bind(this)
+    }
+
+    onChange(event) {
+        this.setState ({ [event.target.name]: event.target.value });
+    }
+
+
     render() {
+        const {start_date, end_date, keyword} = this.state;
         return (
             <div className="bodysection">
+                <h2>General Search</h2>
+                <form
+                    onSubmit={(event) => this.props.handleSubmit(event, start_date, end_date,keyword)}
+                >
+                    <label>Start Date (MM-DD-YYYY): 
+                        <input type="text" name="start_date" value={this.state.start_date} onChange={this.onChange}/>
+                    </label>
+                    <label>End Date (MM-DD-YYYY): 
+                        <input type="text" name="end_date" value={this.state.end_date} onChange={this.onChange}/></label>
+                    <label>Keyword: 
+                        <input type="text" name="keyword" keyword={this.state.keyword} onChange={this.onChange}/></label>
+                    <input type="submit" />
+                </form>
             </div>
         )
     }
@@ -191,7 +266,7 @@ class Folders extends React.Component {
     
     render(){
         return (
-            <div className="bodybarsection">
+            <div className="bodysection">
                 <h2>Folders</h2>
                 <div>
                     {this.state.data.map(function(object) {

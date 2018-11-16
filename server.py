@@ -24,6 +24,7 @@ app.secret_key = "ABC"
 # error.
 app.jinja_env.undefined = StrictUndefined
 
+
 @app.route('/index')
 def index():
 
@@ -46,17 +47,20 @@ def home():
         flash(message)
         return render_template("login.html")
 
+
 @app.route("/registration")
 def show_registration_page():
     """Show registration page."""
 
     return render_template("registration.html")
 
+
 @app.route("/login")
 def show_login_page():
     """Show login page."""
 
     return render_template("login.html")
+
 
 @app.route("/process-registration", methods=["POST"])
 def process_registration():
@@ -85,10 +89,12 @@ def process_registration():
         flash(message)
         return render_template("login.html")
 
+
 @app.route('/upload')
 def show_upload_page():
 
     return render_template("upload.html")
+
 
 @app.route('/process-upload', methods=['POST'])
 def upload_file():
@@ -112,6 +118,7 @@ def upload_file():
     load_messages(texts_filename, user_id, name)
 
     return redirect("/")
+
 
 @app.route("/process-login")
 def log_in_user():
@@ -147,11 +154,13 @@ def log_in_user():
             flash(message)
             return redirect("/login")
 
+
 @app.route("/logout")
 def show_logout_page():
     """Bring a currently logged in user to the logout page."""
 
     return render_template("logout.html")
+
 
 @app.route("/process-logout")
 def log_out_user():
@@ -283,6 +292,58 @@ def api_display_info_about_contact(name_id):
     ]
 
     return jsonify({"contact_info": json_contact_info})
+
+@app.route("/api/general-search")
+def api_general_search(): 
+    """Given a specified date range (in format MM-DD-YYYY), return all messages with a certain person during that time frame."""
+    
+    form_data = request.args
+
+    print("\n\n\n\n\n\nLOOK HERE: ", form_data)
+
+    if start_date and end_date and keyword:
+        start_date = form_data["start_date"]
+        end_date = form_data["end_date"]
+        keyword = form_data["keyword"]
+
+        start = convert_date_to_nanoseconds(start_date)
+        end = convert_date_to_nanoseconds(end_date)
+
+        messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                        start<=Message.date, 
+                                        Message.date <= end,
+                                        Message.text.like(f"%{keyword}%")).order_by(Message.date).all()
+
+    elif not form_data['start_date'] or not form_data['end_date'] and form_data['keyword']:
+        keyword = form_data["keyword"]
+        messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                        Message.text.like(f"%{keyword}%")).order_by(Message.date).all()
+
+    elif form_data['start_date'] and form_data['end_date'] and not form_data['keyword']:
+        start_date = form_data["start_date"]
+        end_date = form_data["end_date"]
+
+        start = convert_date_to_nanoseconds(start_date)
+        end = convert_date_to_nanoseconds(end_date)
+
+        messages = Message.query.filter(Message.user_id==session["user_id"], 
+                                        start<=Message.date, 
+                                        Message.date <= end).order_by(Message.date).all()
+
+    json_messages = []
+    for message in messages:
+        message_attributes = {
+            'id': message.id,
+            'user_id': message.user_id,
+            'text': message.text,
+            'date': message.date,
+            'sender_id': message.sender_id,
+            'recipient_id': message.recipient_id
+        }
+
+        json_messages.append(message_attributes)
+
+    return jsonify({"messages": json_messages})
 
 
 @app.route("/daterange")
@@ -772,8 +833,17 @@ def api_show_messages_on_this_day():
 
         json_messages.append(message_attributes)
 
+    json_friends = []
+    for friend in friends:
+        friend_attributes = {
+            'id': friend.id,
+            'name': friend.name,
+            'user_id': friend.user_id
+        }
 
-    return jsonify({'messages': json_messages})
+        json_friends.append(friend_attributes)
+
+    return jsonify({'messages': json_messages, 'friends': json_friends})
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
