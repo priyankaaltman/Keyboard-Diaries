@@ -6,7 +6,15 @@
 <ul>
   {% for message in messages %}
     <li>
-      {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+        {% if message.sender_id == me.id %}
+            <div class="message_from_me">
+                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+            </div>
+        {% else %}
+            <div class="message_to_me">
+                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+            </div>
+        {% endif %}
     </li>
   {% endfor %}
 </ul>

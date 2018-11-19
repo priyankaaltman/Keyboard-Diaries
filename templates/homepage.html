@@ -4,22 +4,7 @@
 
 <h1>Welcome, {{name}}, to your text analysis!</h1>
 
-<h2>Contacts</h2>
-
-<p><a href="/contacts">View all contacts</a></p>
-
-<h2>API Contacts</h2>
-<p><a href="/api/contacts">View all contacts API</a></p>
-
-<h2>API TEST: Search for texts within a date range</h2>
-
-<form action="/api/daterange">
-    Recipient Name: <input type="text" name="name">
-    Start Date (MM-DD-YYYY): <input type="text" name="start_date">
-    End Date (MM-DD-YYYY): <input type="text" name="end_date">
-    <input type="submit">
-</form>
-
+<hr>
 
 <h2>Search for texts within a date range</h2>
 
@@ -30,20 +15,7 @@
     <input type="submit">
 </form>
 
-<h2>API TEST: View a graph of text counts over time</h2>
-
-<form action="/api/graph-frequencies" id="graph-form">
-    Recipient Name: <input type="text" name="name">
-    (Optional) Second Recipient for Comparison: <input type="text" name="name2">
-    Interval of time: 
-        <input type="radio" name="interval" value="Year">Year
-        <input type="radio" name="interval" value="Month">Month
-    <br>
-    Starting (YYYY or MM-YYYY): <input type="text" name="start_date">
-    Ending (YYYY or MM-YYYY): <input type="text" name="end_date">
-    <input type="submit">
-</form>
-
+<hr>
 
 <h2>View a graph of text counts over time</h2>
 
@@ -59,12 +31,7 @@
     <input type="submit">
 </form>
 
-<h2> API TEST: Find texts by key word or phrase</h2>
-
-<form action="/api/keyword" id="keyword-form">
-    Key word or phrase: <input type="text" name="keyword">
-    <input type="submit">
-</form>
+<hr>
 
 <h2> Find texts by key word or phrase</h2>
 
@@ -73,13 +40,12 @@
     <input type="submit">
 </form>
 
+<hr>
+
 <h2> One Year Ago Today </h2>
 
 <form action="/one-year-ago-today">
     <input type="submit" value="Go">
 </form>
-
-<h2><a href="/folders">Go to Folders</a></h2>
-
 
 {% endblock %}

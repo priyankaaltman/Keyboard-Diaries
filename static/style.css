@@ -1,7 +1,6 @@
 .wrapper {
     display: flex;
     width: 100%;
-    align-items: stretch;
 }
 
 #sidebar {
@@ -10,14 +9,13 @@
     min-height: 100vh;
 }
 
-.active {
+#sidebar.active {
     margin-left: -250px;
-    background-color: blue;
 }
 
-a[data-toggle="collapse"]{
+/*a[data-toggle="collapse"]{
     position:relative;
-}
+}*/
 
 .dropdown-toggle::after {
     display: block;
@@ -36,8 +34,15 @@ a[data-toggle="collapse"]{
     }
 }
 
+.message_to_me {
+    border: 3px solid black;
+    background-color: aliceblue;
+}
 
-
+.message_from_me{
+    border: 3px solid black;
+    background-color: #23fdbd;
+}
 
 
 

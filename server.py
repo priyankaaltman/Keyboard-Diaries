@@ -650,7 +650,10 @@ def show_messages_in_folder(folder_id):
 
     messages = folder.messages # list of messages in that folder
 
-    return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title)
+    me = Person.query.filter(Person.user_id == session["user_id"], Person.name == session["name"]).one()
+    print(me)
+
+    return render_template("messages-by-folder.html", messages=messages, folder_title=folder_title, me=me)
 
 @app.route("/api/folders/<int:folder_id>")
 def api_show_messages_in_folder(folder_id):
@@ -774,7 +777,9 @@ def show_messages_on_this_day():
     messages = Message.query.filter((Message.user_id==session["user_id"]), 
                                     (start<=Message.date), (Message.date < end)).order_by(Message.date).all()
 
-    return render_template("one-year-ago-today.html", messages=messages)
+    me = Person.query.filter(Person.user_id == session["user_id"], Person.name == session["name"]).one()
+
+    return render_template("one-year-ago-today.html", messages=messages, me=me)
 
 @app.route("/api/one-year-ago-today")
 def api_show_messages_on_this_day():
