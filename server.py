@@ -246,6 +246,9 @@ def display_info_about_contact(name_id):
 
     words_received = count_words_in_received_texts_with_name(person.name, user_id)
 
+    me = Person.query.filter(Person.user_id == session["user_id"], Person.name == session["name"]).one()
+
+
     return render_template("texts_with_person.html", messages=messages, 
                                                      name=person.name, 
                                                      the_emoji=the_emoji, 
@@ -253,7 +256,8 @@ def display_info_about_contact(name_id):
                                                      number_received=number_received,
                                                      words_sent=words_sent,
                                                      words_received=words_received,
-                                                     groups=groups)
+                                                     groups=groups,
+                                                     me=me)
 
 @app.route("/api/contacts/<int:name_id>")
 def api_display_info_about_contact(name_id):
@@ -368,7 +372,10 @@ def get_messages_in_date_range():
 
     folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
-    return render_template("texts_by_date.html", messages=messages, folders=folders)
+    me = Person.query.filter(Person.user_id == session["user_id"], Person.name == session["name"]).one()
+
+
+    return render_template("texts_by_date.html", messages=messages, folders=folders, me=me)
 
 
 @app.route('/api/daterange')
@@ -530,7 +537,10 @@ def find_texts_by_keyword():
 
     folders = Folder.query.filter(Folder.user_id==session["user_id"]).all()
 
-    return render_template("texts_by_keyword.html", messages=messages, folders=folders)
+    me = Person.query.filter(Person.user_id == session["user_id"], Person.name == session["name"]).one()
+
+
+    return render_template("texts_by_keyword.html", messages=messages, folders=folders, me=me)
 
 @app.route("/api/keyword")
 def api_find_texts_by_keyword():
