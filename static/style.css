@@ -7,6 +7,8 @@
     min-width: 250px;
     max-width: 250px;
     min-height: 100vh;
+    height: 275px;
+    overflow-y: scroll;
 }
 
 #sidebar.active {
@@ -42,6 +44,10 @@
 .message_from_me{
     border: 3px solid black;
     background-color: #23fdbd;
+}
+
+#daterange {
+    
 }
 
 

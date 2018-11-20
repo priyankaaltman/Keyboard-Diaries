@@ -5,7 +5,7 @@
 <h1>Welcome, {{name}}, to your text analysis!</h1>
 
 <hr>
-
+<div id="daterange">
 <h2>Search for texts within a date range</h2>
 
 <form action="/daterange">
@@ -14,9 +14,9 @@
     End Date (MM-DD-YYYY): <input type="text" name="end_date">
     <input type="submit">
 </form>
-
+</div>
 <hr>
-
+<div id="graph">
 <h2>View a graph of text counts over time</h2>
 
 <form action="/graph-frequencies" id="graph-form">
@@ -30,22 +30,23 @@
     Ending (YYYY or MM-YYYY): <input type="text" name="end_date">
     <input type="submit">
 </form>
-
+</div>
 <hr>
-
+<div id="keyword">
 <h2> Find texts by key word or phrase</h2>
 
 <form action="/keyword" id="keyword-form">
     Key word or phrase: <input type="text" name="keyword">
     <input type="submit">
 </form>
-
+</div>
 <hr>
-
+<div id="onthisday">
 <h2> One Year Ago Today </h2>
 
 <form action="/one-year-ago-today">
     <input type="submit" value="Go">
 </form>
+</div>
 
 {% endblock %}

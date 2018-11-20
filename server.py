@@ -690,6 +690,13 @@ def api_show_messages_in_folder(folder_id):
 
     return jsonify({'messages': json_messages})
 
+@app.route("/groups")
+def show_groups():
+
+    groups = Group.query.filter(Group.user_id==session["user_id"]).all()
+
+    return render_template("groups.html", groups=groups)
+
 @app.route("/new-group", methods=["POST"])
 def make_new_group():
 
@@ -701,7 +708,7 @@ def make_new_group():
 
     db.session.commit()
 
-    return redirect("/contacts")
+    return redirect("/groups")
 
 @app.route("/add-person-to-group", methods=["POST"])
 def add_person_to_group():
@@ -718,9 +725,9 @@ def add_person_to_group():
 
     db.session.commit()
 
-    return redirect(f"/contacts/group/{group_id}")
+    return redirect("/groups")
 
-@app.route("/contacts/group/<int:group_id>")
+@app.route("/groups/<int:group_id>")
 def show_people_in_group(group_id):
 
     group = Group.query.filter(Group.id==group_id, Group.user_id == session["user_id"]).one()
