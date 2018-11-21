@@ -24,7 +24,7 @@ class ContactsList extends React.Component {
                 {this.state.contacts.map(function(contact) {
                     return( 
                         <li key={contact.id}>
-                            <a href={"/contacts/" + contact.id}>{contact.name}</a>
+                            <a id="contact" href={"/contacts/" + contact.id}>{contact.name}</a>
                         </li>
                     );
                 })}

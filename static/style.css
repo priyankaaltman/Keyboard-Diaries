@@ -3,12 +3,40 @@
     width: 100%;
 }
 
+.navbar {
+    width: 100%;
+    background-color: #722101!important;
+}
+
+.nav-link {
+    color: whitesmoke!important;
+}
+
+#content {
+    width:100%;
+}
+
 #sidebar {
     min-width: 250px;
     max-width: 250px;
     min-height: 100vh;
-    height: 275px;
+    height: 4200px;
     overflow-y: scroll;
+    background-color: #FABC14;
+    padding: 5px;
+}
+
+#sidebarCollapse {
+    background-color: #FABC14!important;
+    color: black!important;
+}
+
+#contacts_list{
+    color: black;
+}
+
+#contact {
+    color: black;
 }
 
 #sidebar.active {
@@ -27,7 +55,7 @@
     transform: translateY(-50%);
 }
 
-@media(max-width:768px) {
+@media(max-width:1000px) {
     #sidebar {
         margin-left: -250px;
     }
@@ -38,16 +66,105 @@
 
 .message_to_me {
     border: 3px solid black;
-    background-color: aliceblue;
+    background-color: #E7E5DF;
+    color: black;
 }
 
 .message_from_me{
     border: 3px solid black;
-    background-color: #23fdbd;
+    background-color: #393E41;
+    color: white;
+}
+
+#welcome {
+    min-height: 800px;
+    position: relative;
+    background-image: url(/static/welcome-1.jpg);
+    background-size: cover
+}
+
+#welcomechild {
+    position: absolute;
+    top: 39%;
+    left: 37%;
+    height: 20%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: whitesmoke;
+    font-weight: bold;
+    font-size: 80px;
 }
 
 #daterange {
-    
+    min-height: 800px;
+    position: relative;
+    background-image: url(/static/daterange-1.jpg);
+    background-size: cover
+}
+
+#daterangechild {
+    position: absolute;
+    top: 45%;
+    left: 27%;
+    height: 30%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: black;
+}
+
+#keyword {
+    min-height: 800px;
+    position: relative;
+    background-image: url(/static/keyword-1.jpg);
+    width: 100%;
+    background-size: cover
+}
+
+#keywordchild {
+    position: absolute;
+    top: 33%;
+    left: 73%;
+    height: 30%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: white;
+}
+
+#graph {
+    min-height: 800px;
+    position: relative;
+    background-image: url(/static/graph-2.jpg);
+    width: 100%;
+    background-size: cover
+}
+
+#graphchild {
+    position: absolute;
+    top: 28%;
+    left: 27%;
+    height: 30%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: #FABC14;
+}
+
+#onthisday {
+    min-height: 810px;
+    position: relative;
+    background-image: url(/static/onthisday-1.jpg);
+    width: 100%;
+    background-size: cover
+}
+
+#onthisdaychild {
+    position: absolute;
+    top: 50%;
+    left: 88%;
+    height: 30%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: black;
+
 }
 
 
