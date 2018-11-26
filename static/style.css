@@ -131,39 +131,39 @@
 }
 
 #graph {
-    min-height: 800px;
-    position: relative;
-    background-image: url(/static/graph-2.jpg);
-    width: 100%;
-    background-size: cover
-}
-
-#graphchild {
-    position: absolute;
-    top: 28%;
-    left: 27%;
-    height: 30%;
-    width: 50%;
-    margin: -15% 0 0 -25%;
-    color: #FABC14;
-}
-
-#onthisday {
-    min-height: 810px;
+    min-height: 900px;
     position: relative;
     background-image: url(/static/onthisday-1.jpg);
     width: 100%;
     background-size: cover
 }
 
-#onthisdaychild {
+#graphchild {
     position: absolute;
-    top: 50%;
-    left: 88%;
+    top: 47%;
+    left: 78%;
     height: 30%;
     width: 50%;
     margin: -15% 0 0 -25%;
-    color: black;
+    color: #722101;
+}
+
+#onthisday {
+    min-height: 810px;
+    position: relative;
+    background-image: url(/static/graph-2.jpg);
+    width: 100%;
+    background-size: cover
+}
+
+#onthisdaychild {
+    position: absolute;
+    top: 33%;
+    left: 31%;
+    height: 30%;
+    width: 50%;
+    margin: -15% 0 0 -25%;
+    color: #FABC14;
 
 }
 
