@@ -1,18 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
+<div id="contact_view">
+<br>
+<br>
 
-<h3> Your Most Commonly Used Emoji with {{ name }}: {{ the_emoji }} </h3>
+<div id="emoji" class="message_from_me"><h3> Your Most Commonly Used Emoji with {{ name }}: {{ the_emoji }} </h3></div>
+<br>
+<br>
 
-<h3>{{ name }} has sent you {{ number_received }} texts, totaling {{ words_received }} words.</h3>
-
+<br>
+<br>
+<div id="num_received" class="message_to_me"><h3>{{ name }} has sent you {{ number_received }} texts, totaling {{ words_received }} words.</h3></div>
+<br>
+<br>
+<br>
+<br>
+<div id="num_sent" class="message_from_me">
 <h3>You have sent {{name}} {{ number_sent }} texts, totaling {{ words_sent }} words.</h3>
-
+</div>
+<br>
+<br>
+<br>
+<br>
+<div id="search-by-keyword" class="message_to_me">
 <h3> Search your texts with {{ name }} by keyword or phrase: </h3>
 <form action="/keyword">
     Key word or phrase: <input type="text" name="keyword">
     <input type="hidden" name="person_name" value="{{ name }}">
     <input type="submit">
 </form>
+<br>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+<div id="add-to-group" class="message_from_me">
 
 <h3> Add {{ name }} to a group: </h3>
 
@@ -29,23 +57,31 @@
     <input type="submit" value="Add to Group">
 
 </form>
-
+<br>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
   <h2>Texts</h2>
 
-  <ul>
+
     {% for message in messages %}
-      <li>
         {% if message.sender_id == me.id %}
           <div class="message_from_me">
-              {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+              {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
           </div>
+          <br>
         {% else %}
           <div class="message_to_me">
-              {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+              {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
           </div>
+          <br>
         {% endif %}
-      </li>
+        <br>
     {% endfor %}
-  </ul>
-
+</div>
 {% endblock %}

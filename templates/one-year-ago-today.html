@@ -1,22 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
-
+<div class="page">
   <h2>Texts</h2>
 
-  <ul>
     {% for message in messages %}
-      <li>
         {% if message.sender_id == me.id %}
             <div class="message_from_me">
-                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+                {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
             </div>
+            <br>
+            <br>
         {% else %}
             <div class="message_to_me">
-                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+                {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
             </div>
+            <br>
+            <br>
         {% endif %}
-      </li>
+        <br>
+        <br>
     {% endfor %}
-  </ul>
+</div>
 
 {% endblock %}

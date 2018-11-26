@@ -1,15 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
+<div class="page">
   <h2>Texts</h2>
 
-  <ul>
     {% for message in messages %}
-      <li>
             {% if message.sender_id == me.id %}
               <div class="message_from_me">
-                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+                {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
                 <form action="/add-message-to-folder" method="POST">
                   <input type="hidden" name="message_id" value="{{ message.id }}">
                   <select name="folder_id"> 
@@ -20,9 +18,10 @@
                   <input type="submit" value="Add to Folder">
                 </form>
               </div>
+              <br>
             {% else %}
               <div class="message_to_me">
-                {{ message.convert_date() }}, {{ message.sender.name }}: {{ message.text }}
+                {{ message.convert_date() }}, {{ message.sender.name }}: <b>{{ message.text }}</b>
                 <form action="/add-message-to-folder" method="POST">
                   <input type="hidden" name="message_id" value="{{ message.id }}">
                   <select name="folder_id"> 
@@ -33,10 +32,11 @@
                   <input type="submit" value="Add to Folder">
                 </form>
               </div>
+              <br>
             {% endif %}
-      </li>
+            <br>
+            <br>
     {% endfor %}
-  </ul>
-
+</div>
 
 {% endblock %}

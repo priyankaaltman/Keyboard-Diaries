@@ -68,12 +68,18 @@
     border: 3px solid black;
     background-color: #E7E5DF;
     color: black;
+    float: left;
+    padding: 3px;
+    max-width: 75%;
 }
 
 .message_from_me{
     border: 3px solid black;
-    background-color: #393E41;
+    background-color: #1477D5;
     color: white;
+    float: right;
+    max-width: 75%;
+    padding: 3px;
 }
 
 #welcome {
@@ -167,5 +173,49 @@
 
 }
 
+#folders {
+    padding: 5px;
+}
+
+#contact_view {
+    padding: 10px;
+    position: relative;
+    min-height: 10000px;
+    width: 100%;
+}
+
+#emoji {
+    width: 45%;
+    padding: 5px;
+}
+
+#num_received {
+    width: 45%;
+    padding: 5px;
+
+}
+
+#num_sent {
+    width: 45%;
+    padding: 5px;
+
+}
+
+#search-by-keyword {
+    width: 45%;
+    padding: 5px;
+}
+
+#add-to-group {
+    width: 45%;
+    padding: 5px;
+}
+
+.page {
+    padding: 10px;
+    position: relative;
+    min-height: 10000px;
+    width: 100%;
+}
 
 
