@@ -33,4 +33,4 @@ Navigate to "Upload My Files" in the upper right of the navbar, and follow the i
 
 ### Features
 
-![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/static/Readme_Screenshots/Home.png "Home")
+![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Home.png "Home")
