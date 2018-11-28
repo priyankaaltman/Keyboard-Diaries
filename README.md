@@ -27,10 +27,43 @@ Start the server:
 ```sh
 python server.py
 ```
-Register with an email and password - your password is stored as a hash in the database.
+The user must register with an email and password - the password is stored as a hash in the database.
 
 Navigate to "Upload My Files" in the upper right of the navbar, and follow the instructions to find your backup database files on your computer. Keyboard Diaries is currently only functional for iPhone texts, and requires an iPhone backup to a computer (not iCloud).
 
 ### Features
 
+Home Page:
+
 ![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Home.png "Home")
+
+Sample Contact Card (name info omitted):
+
+![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Contact_Card.png "Contact_Card")
+
+From the homepage, scroll down to search texts by daterange or by keyword, or search by keyword within a contact view. After running a search, any text can be
+saved to a folder (folders are created from the folders tab in the nav bar). Here
+is a sample use case (saving addresses) and folder messages view:
+
+![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Folders_Example.png "Folders_Example_Addresses")
+
+Also from the homepage, fill out the following form to generate a graph of text
+frequencies with one or two contacts over a range of time intervals: 
+
+![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Graph_Form.png "Graph_Form")
+
+![alt text](https://github.com/priyankaaltman/Keyboard-Diaries/blob/master/static/Readme_Screenshots/Graph.png "Graph")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
